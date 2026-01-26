@@ -2210,7 +2210,7 @@ contains
       end do
       !$omp end parallel do
       call xcsum(volgs(1),util1,ips)
-      volgs(1) = rnacc*volgs(1)/grav
+      volgs(1) = rnacc*volgs(1)
     end if
     if (msc_salnga(iogrp) /= 0) then
       !$omp parallel do private(l,i)
