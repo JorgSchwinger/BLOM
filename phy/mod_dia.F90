@@ -55,7 +55,7 @@ module mod_dia
                            utfltd, vtfltd, utflsm, vtflsm, &
                            utflld, vtflld, usfltd, vsfltd, &
                            usflsm, vsflsm, usflld, vsflld
-  use mod_cmnfld,    only: z, bfsql, dz, mlts
+  use mod_cmnfld,    only: z, bfsql, dz, mldl82, mldb04
   use mod_seaice,    only: ficem, hicem, hsnwm, uicem, vicem, iagem
   use mod_forcing,   only: swa, nsf, hmat, hmltfz, lip, sop, eva, rnf, rfi, &
                            fmltfz, sfl, ztx, mty, abswnd, &
@@ -68,6 +68,7 @@ module mod_dia
   use mod_thdysi,    only: tsrfm,ticem
   use mod_tracers,   only: ntrocn, ntr, natr, itriag, itrtke, itrgls, trc
   use mod_ifdefs,    only: use_TRC, use_TKE, use_ATRC, use_IDLAGE
+
   implicit none
   private
 
@@ -195,67 +196,69 @@ module mod_dia
 
   ! Namelist
   integer, dimension(nphymax), public :: &
-       H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  , &
-       H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   , &
-       H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LAMULT , H2D_HMAT, &
-       H2D_LASL   ,H2D_LIP    ,H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   , &
-       H2D_MLTSMN ,H2D_MLTSMX ,H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI , &
-       H2D_MTKEBF ,H2D_MTKERS ,H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    , &
-       H2D_NSF    ,H2D_PBOT   ,H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX , &
-       H2D_SALFLX ,H2D_SALRLX ,H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  , &
-       H2D_SFL    ,H2D_SOP    ,H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  , &
-       H2D_SST    ,H2D_SSTSQ  ,H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    , &
-       H2D_T20D   ,H2D_TAUX   ,H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   , &
-       H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 , &
-       H2D_USTOKES,H2D_VB     ,H2D_VICE   ,H2D_VSTOKES,H2D_ZTX    , &
-       LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO , &
-       LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    , &
-       LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   , &
-       LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,LYR_UMFLSM ,LYR_UTFLTD , &
-       LYR_UTFLSM ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLSM ,LYR_USFLLD , &
-       LYR_UVEL   ,LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD , &
-       LYR_VMFLSM ,LYR_VTFLTD ,LYR_VTFLSM ,LYR_VTFLLD ,LYR_VSFLTD , &
-       LYR_VSFLSM ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,LYR_WFLX2  , &
-       LYR_PV     ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE , &
-       LVL_BFSQ   ,LVL_DIFDIA ,LVL_DIFVMO ,LVL_DIFVHO ,LVL_DIFVSO , &
-       LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,LVL_SALN   ,LVL_TEMP   , &
-       LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,LVL_USFLX  ,LVL_UMFLTD , &
-       LVL_UMFLSM ,LVL_UTFLTD ,LVL_UTFLSM ,LVL_UTFLLD ,LVL_USFLTD , &
-       LVL_USFLSM ,LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  , &
-       LVL_VSFLX  ,LVL_VMFLTD ,LVL_VMFLSM ,LVL_VTFLTD ,LVL_VTFLSM , &
-       LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLSM ,LVL_VSFLLD ,LVL_VVEL   , &
-       LVL_WFLX   ,LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,LVL_GLS_PSI, &
-       LVL_IDLAGE , &
-       MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFSML ,MSC_MMFTDD , &
-       MSC_MMFSMD ,MSC_MHFLX  ,MSC_MHFTD  ,MSC_MHFSM  ,MSC_MHFLD  , &
-       MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFSM  ,MSC_MSFLD  ,MSC_VOLTR  , &
-       MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,MSC_SSSGA  , &
+       H2D_ABSWND  ,H2D_ALB     ,H2D_BTMSTR  ,H2D_BRNFLX  ,H2D_BRNPD   , &
+       H2D_DFL     ,H2D_EVA     ,H2D_FICE    ,H2D_FMLTFZ  ,H2D_HICE    , &
+       H2D_HMLTFZ  ,H2D_HSNW    ,H2D_IAGE    ,H2D_IDKEDT  ,H2D_LAMULT  , &
+       H2D_HMAT    ,H2D_LASL    ,H2D_LIP     ,H2D_MAXBLD  ,H2D_BLD     , &
+       H2D_MLDL82  ,H2D_MLDL82MN,H2D_MLDL82MX,H2D_MLDL82SQ,H2D_MLDB04  , &
+       H2D_MLDB04MN,H2D_MLDB04MX,H2D_MLDB04SQ,H2D_MTKEUS  ,H2D_MTKENI  , &
+       H2D_MTKEBF  ,H2D_MTKERS  ,H2D_MTKEPE  ,H2D_MTKEKE  ,H2D_MTY     , &
+       H2D_NSF     ,H2D_PBOT    ,H2D_PSRF    ,H2D_RFIFLX  ,H2D_RNFFLX  , &
+       H2D_SALFLX  ,H2D_SALRLX  ,H2D_SBOT    ,H2D_SEALV   ,H2D_SLVSQ   , &
+       H2D_SFL     ,H2D_SOP     ,H2D_SIGMX   ,H2D_SSS     ,H2D_SSSSQ   , &
+       H2D_SST     ,H2D_SSTSQ   ,H2D_SURFLX  ,H2D_SURRLX  ,H2D_SWA     , &
+       H2D_T20D    ,H2D_TAUX    ,H2D_TAUY    ,H2D_TBOT    ,H2D_TICE    , &
+       H2D_TSRF    ,H2D_UB      ,H2D_UICE    ,H2D_USTAR   ,H2D_USTAR3  , &
+       H2D_USTOKES ,H2D_VB      ,H2D_VICE    ,H2D_VSTOKES ,H2D_ZTX     , &
+       LYR_BFSQ    ,LYR_DIFDIA  ,LYR_DIFVMO  ,LYR_DIFVHO  ,LYR_DIFVSO  , &
+       LYR_DIFINT  ,LYR_DIFISO  ,LYR_DP      ,LYR_DPU     ,LYR_DPV     , &
+       LYR_DZ      ,LYR_SALN    ,LYR_TEMP    ,LYR_TRC     ,LYR_UFLX    , &
+       LYR_UTFLX   ,LYR_USFLX   ,LYR_UMFLTD  ,LYR_UMFLSM  ,LYR_UTFLTD  , &
+       LYR_UTFLSM  ,LYR_UTFLLD  ,LYR_USFLTD  ,LYR_USFLSM  ,LYR_USFLLD  , &
+       LYR_UVEL    ,LYR_VFLX    ,LYR_VTFLX   ,LYR_VSFLX   ,LYR_VMFLTD  , &
+       LYR_VMFLSM  ,LYR_VTFLTD  ,LYR_VTFLSM  ,LYR_VTFLLD  ,LYR_VSFLTD  , &
+       LYR_VSFLSM  ,LYR_VSFLLD  ,LYR_VVEL    ,LYR_WFLX    ,LYR_WFLX2   , &
+       LYR_PV      ,LYR_TKE     ,LYR_GLS_PSI ,LYR_IDLAGE  , &
+       LVL_BFSQ    ,LVL_DIFDIA  ,LVL_DIFVMO  ,LVL_DIFVHO  ,LVL_DIFVSO  , &
+       LVL_DIFINT  ,LVL_DIFISO  ,LVL_DZ      ,LVL_SALN    ,LVL_TEMP    , &
+       LVL_TRC     ,LVL_UFLX    ,LVL_UTFLX   ,LVL_USFLX   ,LVL_UMFLTD  , &
+       LVL_UMFLSM  ,LVL_UTFLTD  ,LVL_UTFLSM  ,LVL_UTFLLD  ,LVL_USFLTD  , &
+       LVL_USFLSM  ,LVL_USFLLD  ,LVL_UVEL    ,LVL_VFLX    ,LVL_VTFLX   , &
+       LVL_VSFLX   ,LVL_VMFLTD  ,LVL_VMFLSM  ,LVL_VTFLTD  ,LVL_VTFLSM  , &
+       LVL_VTFLLD  ,LVL_VSFLTD  ,LVL_VSFLSM  ,LVL_VSFLLD  ,LVL_VVEL    , &
+       LVL_WFLX    ,LVL_WFLX2   ,LVL_PV      ,LVL_TKE     ,LVL_GLS_PSI , &
+       LVL_IDLAGE  , &
+       MSC_MMFLXL  ,MSC_MMFLXD  ,MSC_MMFTDL  ,MSC_MMFSML  ,MSC_MMFTDD  , &
+       MSC_MMFSMD  ,MSC_MHFLX   ,MSC_MHFTD   ,MSC_MHFSM   ,MSC_MHFLD   , &
+       MSC_MSFLX   ,MSC_MSFTD   ,MSC_MSFSM   ,MSC_MSFLD   ,MSC_VOLTR   , &
+       MSC_MASSGS  ,MSC_VOLGS   ,MSC_SALNGA  ,MSC_TEMPGA  ,MSC_SSSGA   , &
        MSC_SSTGA
 
   integer, dimension(nphymax), public :: &
-       ACC_ABSWND ,ACC_ALB    ,ACC_BRNFLX ,ACC_BRNPD  ,ACC_DFL    , &
-       ACC_EVA    ,ACC_FICE   ,ACC_FMLTFZ ,ACC_HICE   ,ACC_HMAT   , ACC_HMLTFZ , &
-       ACC_HSNW   ,ACC_IAGE   ,ACC_IDKEDT ,ACC_LAMULT ,ACC_LASL   , &
-       ACC_LIP    ,ACC_MAXMLD ,ACC_MLD    ,ACC_MLTS   ,ACC_MLTSMN , &
-       ACC_MLTSMX ,ACC_MLTSSQ ,ACC_MTKEUS ,ACC_MTKENI ,ACC_MTKEBF , &
-       ACC_MTKERS ,ACC_MTKEPE ,ACC_MTKEKE ,ACC_MTY    ,ACC_NSF    , &
-       ACC_PBOT   ,ACC_PSRF   ,ACC_RFIFLX ,ACC_RNFFLX ,ACC_SALFLX , &
-       ACC_SALRLX ,ACC_SBOT   ,ACC_SEALV  ,ACC_SLVSQ  ,ACC_SFL    , &
-       ACC_SOP    ,ACC_SIGMX  ,ACC_SSS    ,ACC_SSSSQ  ,ACC_SST    , &
-       ACC_SSTSQ  ,ACC_SURFLX ,ACC_SURRLX ,ACC_SWA    ,ACC_T20D   , &
-       ACC_TAUX   ,ACC_TAUY   ,ACC_TBOT   ,ACC_TICE   ,ACC_TSRF   , &
-       ACC_UB     ,ACC_UBFLXS ,ACC_UICE   ,ACC_USTAR  ,ACC_USTAR3 , &
-       ACC_USTOKES,ACC_VB     ,ACC_VBFLXS ,ACC_VICE   ,ACC_VSTOKES, &
-       ACC_ZTX    ,ACC_IVOLU  ,ACC_IVOLV  ,ACC_UTILH2D, &
-       ACC_BFSQ   ,ACC_DIFDIA ,ACC_DIFVMO ,ACC_DIFVHO ,ACC_DIFVSO , &
-       ACC_DIFINT ,ACC_DIFISO ,ACC_DP     ,ACC_DPU    ,ACC_DPV    , &
-       ACC_DZ     ,ACC_SALN   ,ACC_TEMP   ,ACC_UFLX   ,ACC_UTFLX  , &
-       ACC_USFLX  ,ACC_UMFLTD ,ACC_UMFLSM ,ACC_UTFLTD ,ACC_UTFLSM , &
-       ACC_UTFLLD ,ACC_USFLTD ,ACC_USFLSM ,ACC_USFLLD ,ACC_UVEL   , &
-       ACC_VFLX   ,ACC_VTFLX  ,ACC_VSFLX  ,ACC_VMFLTD ,ACC_VMFLSM , &
-       ACC_VTFLTD ,ACC_VTFLSM ,ACC_VTFLLD ,ACC_VSFLTD ,ACC_VSFLSM , &
-       ACC_VSFLLD ,ACC_VVEL   ,ACC_WFLX   ,ACC_WFLX2  ,ACC_AVDSG  , &
-       ACC_DPVOR  ,ACC_TKE    ,ACC_GLS_PSI,ACC_UTILLYR, &
+       ACC_ABSWND  ,ACC_ALB     ,ACC_BRNFLX  ,ACC_BRNPD   ,ACC_DFL     , &
+       ACC_EVA     ,ACC_FICE    ,ACC_FMLTFZ  ,ACC_HICE    ,ACC_HMAT    , &
+       ACC_HMLTFZ  ,ACC_HSNW    ,ACC_IAGE    ,ACC_IDKEDT  ,ACC_LAMULT  , &
+       ACC_LASL    ,ACC_LIP     ,ACC_MAXBLD  ,ACC_BLD     ,ACC_MLDL82  , &
+       ACC_MLDL82MN,ACC_MLDL82MX,ACC_MLDL82SQ,ACC_MLDB04  ,ACC_MLDB04MN, &
+       ACC_MLDB04MX,ACC_MLDB04SQ,ACC_MTKEUS  ,ACC_MTKENI  ,ACC_MTKEBF , &
+       ACC_MTKERS  ,ACC_MTKEPE  ,ACC_MTKEKE  ,ACC_MTY     ,ACC_NSF    , &
+       ACC_PBOT    ,ACC_PSRF    ,ACC_RFIFLX  ,ACC_RNFFLX  ,ACC_SALFLX , &
+       ACC_SALRLX  ,ACC_SBOT    ,ACC_SEALV   ,ACC_SLVSQ   ,ACC_SFL    , &
+       ACC_SOP     ,ACC_SIGMX   ,ACC_SSS     ,ACC_SSSSQ   ,ACC_SST    , &
+       ACC_SSTSQ   ,ACC_SURFLX  ,ACC_SURRLX  ,ACC_SWA     ,ACC_T20D   , &
+       ACC_TAUX    ,ACC_TAUY    ,ACC_TBOT    ,ACC_TICE    ,ACC_TSRF   , &
+       ACC_UB      ,ACC_UBFLXS  ,ACC_UICE    ,ACC_USTAR   ,ACC_USTAR3 , &
+       ACC_USTOKES ,ACC_VB      ,ACC_VBFLXS  ,ACC_VICE    ,ACC_VSTOKES, &
+       ACC_ZTX     ,ACC_IVOLU   ,ACC_IVOLV   ,ACC_UTILH2D , &
+       ACC_BFSQ    ,ACC_DIFDIA  ,ACC_DIFVMO  ,ACC_DIFVHO  ,ACC_DIFVSO , &
+       ACC_DIFINT  ,ACC_DIFISO  ,ACC_DP      ,ACC_DPU     ,ACC_DPV    , &
+       ACC_DZ      ,ACC_SALN    ,ACC_TEMP    ,ACC_UFLX    ,ACC_UTFLX  , &
+       ACC_USFLX   ,ACC_UMFLTD  ,ACC_UMFLSM  ,ACC_UTFLTD  ,ACC_UTFLSM , &
+       ACC_UTFLLD  ,ACC_USFLTD  ,ACC_USFLSM  ,ACC_USFLLD  ,ACC_UVEL   , &
+       ACC_VFLX    ,ACC_VTFLX   ,ACC_VSFLX   ,ACC_VMFLTD  ,ACC_VMFLSM , &
+       ACC_VTFLTD  ,ACC_VTFLSM  ,ACC_VTFLLD  ,ACC_VSFLTD  ,ACC_VSFLSM , &
+       ACC_VSFLLD  ,ACC_VVEL    ,ACC_WFLX    ,ACC_WFLX2   ,ACC_AVDSG  , &
+       ACC_DPVOR   ,ACC_TKE     ,ACC_GLS_PSI,ACC_UTILLYR, &
        ACC_BFSQLVL   ,ACC_DIFDIALVL ,ACC_DIFVMOLVL ,ACC_DIFVHOLVL , &
        ACC_DIFVSOLVL ,ACC_DIFINTLVL ,ACC_DIFISOLVL ,ACC_DZLVL     , &
        ACC_SALNLVL   ,ACC_TEMPLVL   ,ACC_UFLXLVL   ,ACC_UTFLXLVL  , &
@@ -284,37 +287,38 @@ module mod_dia
        SEC_SIFILE
 
   namelist /DIAPHY/ &
-       H2D_ABSWND ,H2D_ALB    ,H2D_BTMSTR ,H2D_BRNFLX ,H2D_BRNPD  , &
-       H2D_DFL    ,H2D_EVA    ,H2D_FICE   ,H2D_FMLTFZ ,H2D_HICE   , H2D_HMAT, &
-       H2D_HMLTFZ ,H2D_HSNW   ,H2D_IAGE   ,H2D_IDKEDT ,H2D_LAMULT , &
-       H2D_LASL   ,H2D_LIP    ,H2D_MAXMLD ,H2D_MLD    ,H2D_MLTS   , &
-       H2D_MLTSMN ,H2D_MLTSMX ,H2D_MLTSSQ ,H2D_MTKEUS ,H2D_MTKENI , &
-       H2D_MTKEBF ,H2D_MTKERS ,H2D_MTKEPE ,H2D_MTKEKE ,H2D_MTY    , &
-       H2D_NSF    ,H2D_PBOT   ,H2D_PSRF   ,H2D_RFIFLX ,H2D_RNFFLX , &
-       H2D_SALFLX ,H2D_SALRLX ,H2D_SBOT   ,H2D_SEALV  ,H2D_SLVSQ  , &
-       H2D_SFL    ,H2D_SOP    ,H2D_SIGMX  ,H2D_SSS    ,H2D_SSSSQ  , &
-       H2D_SST    ,H2D_SSTSQ  ,H2D_SURFLX ,H2D_SURRLX ,H2D_SWA    , &
-       H2D_T20D   ,H2D_TAUX   ,H2D_TAUY   ,H2D_TBOT   ,H2D_TICE   , &
-       H2D_TSRF   ,H2D_UB     ,H2D_UICE   ,H2D_USTAR  ,H2D_USTAR3 , &
-       H2D_USTOKES,H2D_VB     ,H2D_VICE   ,H2D_VSTOKES,H2D_ZTX    , &
-       LYR_BFSQ   ,LYR_DIFDIA ,LYR_DIFVMO ,LYR_DIFVHO ,LYR_DIFVSO , &
-       LYR_DIFINT ,LYR_DIFISO ,LYR_DP     ,LYR_DPU    ,LYR_DPV    , &
-       LYR_DZ     ,LYR_SALN   ,LYR_TEMP   ,LYR_TRC    ,LYR_UFLX   , &
-       LYR_UTFLX  ,LYR_USFLX  ,LYR_UMFLTD ,LYR_UMFLSM ,LYR_UTFLTD , &
-       LYR_UTFLSM ,LYR_UTFLLD ,LYR_USFLTD ,LYR_USFLSM ,LYR_USFLLD , &
-       LYR_UVEL   ,LYR_VFLX   ,LYR_VTFLX  ,LYR_VSFLX  ,LYR_VMFLTD , &
-       LYR_VMFLSM ,LYR_VTFLTD ,LYR_VTFLSM ,LYR_VTFLLD ,LYR_VSFLTD , &
-       LYR_VSFLSM ,LYR_VSFLLD ,LYR_VVEL   ,LYR_WFLX   ,LYR_WFLX2  , &
-       LYR_PV     ,LYR_TKE    ,LYR_GLS_PSI,LYR_IDLAGE , &
-       LVL_BFSQ   ,LVL_DIFDIA ,LVL_DIFVMO ,LVL_DIFVHO ,LVL_DIFVSO , &
-       LVL_DIFINT ,LVL_DIFISO ,LVL_DZ     ,LVL_SALN   ,LVL_TEMP   , &
-       LVL_TRC    ,LVL_UFLX   ,LVL_UTFLX  ,LVL_USFLX  ,LVL_UMFLTD , &
-       LVL_UMFLSM ,LVL_UTFLTD ,LVL_UTFLSM ,LVL_UTFLLD ,LVL_USFLTD , &
-       LVL_USFLSM ,LVL_USFLLD ,LVL_UVEL   ,LVL_VFLX   ,LVL_VTFLX  , &
-       LVL_VSFLX  ,LVL_VMFLTD ,LVL_VMFLSM ,LVL_VTFLTD ,LVL_VTFLSM , &
-       LVL_VTFLLD ,LVL_VSFLTD ,LVL_VSFLSM ,LVL_VSFLLD ,LVL_VVEL   , &
-       LVL_WFLX   ,LVL_WFLX2  ,LVL_PV     ,LVL_TKE    ,LVL_GLS_PSI, &
-       LVL_IDLAGE , &
+       H2D_ABSWND  ,H2D_ALB     ,H2D_BTMSTR  ,H2D_BRNFLX  ,H2D_BRNPD   , &
+       H2D_DFL     ,H2D_EVA     ,H2D_FICE    ,H2D_FMLTFZ  ,H2D_HICE    , &
+       H2D_HMAT    ,H2D_HMLTFZ  ,H2D_HSNW    ,H2D_IAGE    ,H2D_IDKEDT  , &
+       H2D_LAMULT  ,H2D_LASL    ,H2D_LIP     ,H2D_MAXBLD  ,H2D_BLD     , &
+       H2D_MLDL82  ,H2D_MLDL82MN,H2D_MLDL82MX,H2D_MLDL82SQ,H2D_MLDB04  , &
+       H2D_MLDB04MN,H2D_MLDB04MX,H2D_MLDB04SQ,H2D_MTKEUS  ,H2D_MTKENI  , &
+       H2D_MTKEBF  ,H2D_MTKERS  ,H2D_MTKEPE  ,H2D_MTKEKE  ,H2D_MTY     , &
+       H2D_NSF     ,H2D_PBOT    ,H2D_PSRF    ,H2D_RFIFLX  ,H2D_RNFFLX  , &
+       H2D_SALFLX  ,H2D_SALRLX  ,H2D_SBOT    ,H2D_SEALV   ,H2D_SLVSQ   , &
+       H2D_SFL     ,H2D_SOP     ,H2D_SIGMX   ,H2D_SSS     ,H2D_SSSSQ   , &
+       H2D_SST     ,H2D_SSTSQ   ,H2D_SURFLX  ,H2D_SURRLX  ,H2D_SWA     , &
+       H2D_T20D    ,H2D_TAUX    ,H2D_TAUY    ,H2D_TBOT    ,H2D_TICE    , &
+       H2D_TSRF    ,H2D_UB      ,H2D_UICE    ,H2D_USTAR   ,H2D_USTAR3  , &
+       H2D_USTOKES ,H2D_VB      ,H2D_VICE    ,H2D_VSTOKES ,H2D_ZTX     , &
+       LYR_BFSQ    ,LYR_DIFDIA  ,LYR_DIFVMO  ,LYR_DIFVHO  ,LYR_DIFVSO  , &
+       LYR_DIFINT  ,LYR_DIFISO  ,LYR_DP      ,LYR_DPU     ,LYR_DPV     , &
+       LYR_DZ      ,LYR_SALN    ,LYR_TEMP    ,LYR_TRC     ,LYR_UFLX    , &
+       LYR_UTFLX   ,LYR_USFLX   ,LYR_UMFLTD  ,LYR_UMFLSM  ,LYR_UTFLTD  , &
+       LYR_UTFLSM  ,LYR_UTFLLD  ,LYR_USFLTD  ,LYR_USFLSM  ,LYR_USFLLD  , &
+       LYR_UVEL    ,LYR_VFLX    ,LYR_VTFLX   ,LYR_VSFLX   ,LYR_VMFLTD  , &
+       LYR_VMFLSM  ,LYR_VTFLTD  ,LYR_VTFLSM  ,LYR_VTFLLD  ,LYR_VSFLTD  , &
+       LYR_VSFLSM  ,LYR_VSFLLD  ,LYR_VVEL    ,LYR_WFLX    ,LYR_WFLX2   , &
+       LYR_PV      ,LYR_TKE     ,LYR_GLS_PSI ,LYR_IDLAGE  , &
+       LVL_BFSQ    ,LVL_DIFDIA  ,LVL_DIFVMO  ,LVL_DIFVHO  ,LVL_DIFVSO  , &
+       LVL_DIFINT  ,LVL_DIFISO  ,LVL_DZ      ,LVL_SALN    ,LVL_TEMP    , &
+       LVL_TRC     ,LVL_UFLX    ,LVL_UTFLX   ,LVL_USFLX   ,LVL_UMFLTD  , &
+       LVL_UMFLSM  ,LVL_UTFLTD  ,LVL_UTFLSM  ,LVL_UTFLLD  ,LVL_USFLTD  , &
+       LVL_USFLSM  ,LVL_USFLLD  ,LVL_UVEL    ,LVL_VFLX    ,LVL_VTFLX   , &
+       LVL_VSFLX   ,LVL_VMFLTD  ,LVL_VMFLSM  ,LVL_VTFLTD  ,LVL_VTFLSM  , &
+       LVL_VTFLLD  ,LVL_VSFLTD  ,LVL_VSFLSM  ,LVL_VSFLLD  ,LVL_VVEL    , &
+       LVL_WFLX    ,LVL_WFLX2   ,LVL_PV      ,LVL_TKE     ,LVL_GLS_PSI , &
+       LVL_IDLAGE  , &
        MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFSML ,MSC_MMFTDD , &
        MSC_MMFSMD ,MSC_MHFLX  ,MSC_MHFTD  ,MSC_MHFSM  ,MSC_MHFLD  , &
        MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFSM  ,MSC_MSFLD  ,MSC_VOLTR  , &
@@ -515,12 +519,16 @@ contains
       ACC_LAMULT(n)   = H2D_LAMULT(n)
       ACC_LASL(n)     = H2D_LASL(n)
       ACC_LIP(n)      = H2D_LIP(n)
-      ACC_MAXMLD(n)   = H2D_MAXMLD(n)
-      ACC_MLD(n)      = H2D_MLD(n)
-      ACC_MLTS(n)     = H2D_MLTS(n)
-      ACC_MLTSMN(n)   = H2D_MLTSMN(n)
-      ACC_MLTSMX(n)   = H2D_MLTSMX(n)
-      ACC_MLTSSQ(n)   = H2D_MLTSSQ(n)
+      ACC_MAXBLD(n)   = H2D_MAXBLD(n)
+      ACC_BLD(n)      = H2D_BLD(n)
+      ACC_MLDL82(n)   = H2D_MLDL82(n)
+      ACC_MLDL82MN(n) = H2D_MLDL82MN(n)
+      ACC_MLDL82MX(n) = H2D_MLDL82MX(n)
+      ACC_MLDL82SQ(n) = H2D_MLDL82SQ(n)
+      ACC_MLDB04(n)   = H2D_MLDB04(n)
+      ACC_MLDB04MN(n) = H2D_MLDB04MN(n)
+      ACC_MLDB04MX(n) = H2D_MLDB04MX(n)
+      ACC_MLDB04SQ(n) = H2D_MLDB04SQ(n)
       ACC_MTKEUS(n)   = H2D_MTKEUS(n)
       ACC_MTKENI(n)   = H2D_MTKENI(n)
       ACC_MTKEBF(n)   = H2D_MTKEBF(n)
@@ -684,315 +692,323 @@ contains
       ACC_VOLTR(n)    = MSC_VOLTR(n)
 
       ! - Determine position in buffer
-      if (acc_abswnd(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_ABSWND(n) /= 0) nphyh2d = nphyh2d+1
       ACC_ABSWND(n) = nphyh2d*min(1,ACC_ABSWND(n))
-      if (acc_alb(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_ALB(n) /= 0) nphyh2d = nphyh2d+1
       ACC_ALB(n) = nphyh2d*min(1,ACC_ALB(n))
-      if (acc_brnflx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_BRNFLX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_BRNFLX(n) = nphyh2d*min(1,ACC_BRNFLX(n))
-      if (acc_brnpd(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_BRNPD(n) /= 0) nphyh2d = nphyh2d+1
       ACC_BRNPD(n) = nphyh2d*min(1,ACC_BRNPD(n))
-      if (acc_dfl(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_DFL(n) /= 0) nphyh2d = nphyh2d+1
       ACC_DFL(n) = nphyh2d*min(1,ACC_DFL(n))
-      if (acc_eva(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_EVA(n) /= 0) nphyh2d = nphyh2d+1
       ACC_EVA(n) = nphyh2d*min(1,ACC_EVA(n))
-      if (acc_fmltfz(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_FMLTFZ(n) /= 0) nphyh2d = nphyh2d+1
       ACC_FMLTFZ(n) = nphyh2d*min(1,ACC_FMLTFZ(n))
-      if (acc_fice(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_FICE(n) /= 0) nphyh2d = nphyh2d+1
       ACC_FICE(n) = nphyh2d*min(1,ACC_FICE(n))
-      if (acc_hice(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_HICE(n) /= 0) nphyh2d = nphyh2d+1
       ACC_HICE(n) = nphyh2d*min(1,ACC_HICE(n))
-      if (acc_hmat(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_HMAT(n) /= 0) nphyh2d = nphyh2d+1
       ACC_HMAT(n) = nphyh2d*min(1,ACC_HMAT(n))
-      if (acc_hmltfz(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_HMLTFZ(n) /= 0) nphyh2d = nphyh2d+1
       ACC_HMLTFZ(n) = nphyh2d*min(1,ACC_HMLTFZ(n))
-      if (acc_hsnw(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_HSNW(n) /= 0) nphyh2d = nphyh2d+1
       ACC_HSNW(n) = nphyh2d*min(1,ACC_HSNW(n))
-      if (acc_iage(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_IAGE(n) /= 0) nphyh2d = nphyh2d+1
       ACC_IAGE(n) = nphyh2d*min(1,ACC_IAGE(n))
-      if (acc_idkedt(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_IDKEDT(n) /= 0) nphyh2d = nphyh2d+1
       ACC_IDKEDT(n) = nphyh2d*min(1,ACC_IDKEDT(n))
-      if (acc_ivolu(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_IVOLU(n) /= 0) nphyh2d = nphyh2d+1
       ACC_IVOLU(n) = nphyh2d*min(1,ACC_IVOLU(n))
-      if (acc_ivolv(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_IVOLV(n) /= 0) nphyh2d = nphyh2d+1
       ACC_IVOLV(n) = nphyh2d*min(1,ACC_IVOLV(n))
-      if (acc_lamult(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_LAMULT(n) /= 0) nphyh2d = nphyh2d+1
       ACC_LAMULT(n) = nphyh2d*min(1,ACC_LAMULT(n))
-      if (acc_lasl(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_LASL(n) /= 0) nphyh2d = nphyh2d+1
       ACC_LASL(n) = nphyh2d*min(1,ACC_LASL(n))
-      if (acc_lip(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_LIP(n) /= 0) nphyh2d = nphyh2d+1
       ACC_LIP(n) = nphyh2d*min(1,ACC_LIP(n))
-      if (acc_maxmld(n) /= 0) nphyh2d = nphyh2d+1
-      ACC_MAXMLD(n) = nphyh2d*min(1,ACC_MAXMLD(n))
-      if (acc_mld(n) /= 0) nphyh2d = nphyh2d+1
-      ACC_MLD(n) = nphyh2d*min(1,ACC_MLD(n))
-      if (acc_mlts(n) /= 0) nphyh2d = nphyh2d+1
-      ACC_MLTS(n) = nphyh2d*min(1,ACC_MLTS(n))
-      if (acc_mltsmn(n) /= 0) nphyh2d = nphyh2d+1
-      ACC_MLTSMN(n) = nphyh2d*min(1,ACC_MLTSMN(n))
-      if (acc_mltsmx(n) /= 0) nphyh2d = nphyh2d+1
-      ACC_MLTSMX(n) = nphyh2d*min(1,ACC_MLTSMX(n))
-      if (acc_mltssq(n) /= 0) nphyh2d = nphyh2d+1
-      ACC_MLTSSQ(n) = nphyh2d*min(1,ACC_MLTSSQ(n))
-      if (acc_mtkeus(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_MAXBLD(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MAXBLD(n) = nphyh2d*min(1,ACC_MAXBLD(n))
+      if (ACC_BLD(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_BLD(n) = nphyh2d*min(1,ACC_BLD(n))
+      if (ACC_MLDL82(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MLDL82(n) = nphyh2d*min(1,ACC_MLDL82(n))
+      if (ACC_MLDL82MN(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MLDL82MN(n) = nphyh2d*min(1,ACC_MLDL82MN(n))
+      if (ACC_MLDL82MX(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MLDL82MX(n) = nphyh2d*min(1,ACC_MLDL82MX(n))
+      if (ACC_MLDL82SQ(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MLDL82SQ(n) = nphyh2d*min(1,ACC_MLDL82SQ(n))
+      if (ACC_MLDB04(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MLDB04(n) = nphyh2d*min(1,ACC_MLDB04(n))
+      if (ACC_MLDB04MN(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MLDB04MN(n) = nphyh2d*min(1,ACC_MLDB04MN(n))
+      if (ACC_MLDB04MX(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MLDB04MX(n) = nphyh2d*min(1,ACC_MLDB04MX(n))
+      if (ACC_MLDB04SQ(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_MLDB04SQ(n) = nphyh2d*min(1,ACC_MLDB04SQ(n))
+      if (ACC_MTKEUS(n) /= 0) nphyh2d = nphyh2d+1
       ACC_MTKEUS(n) = nphyh2d*min(1,ACC_MTKEUS(n))
-      if (acc_mtkeni(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_MTKENI(n) /= 0) nphyh2d = nphyh2d+1
       ACC_MTKENI(n) = nphyh2d*min(1,ACC_MTKENI(n))
-      if (acc_mtkebf(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_MTKEBF(n) /= 0) nphyh2d = nphyh2d+1
       ACC_MTKEBF(n) = nphyh2d*min(1,ACC_MTKEBF(n))
-      if (acc_mtkers(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_MTKERS(n) /= 0) nphyh2d = nphyh2d+1
       ACC_MTKERS(n) = nphyh2d*min(1,ACC_MTKERS(n))
-      if (acc_mtkepe(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_MTKEPE(n) /= 0) nphyh2d = nphyh2d+1
       ACC_MTKEPE(n) = nphyh2d*min(1,ACC_MTKEPE(n))
-      if (acc_mtkeke(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_MTKEKE(n) /= 0) nphyh2d = nphyh2d+1
       ACC_MTKEKE(n) = nphyh2d*min(1,ACC_MTKEKE(n))
-      if (acc_mty(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_MTY(n) /= 0) nphyh2d = nphyh2d+1
       ACC_MTY(n) = nphyh2d*min(1,ACC_MTY(n))
-      if (acc_nsf(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_NSF(n) /= 0) nphyh2d = nphyh2d+1
       ACC_NSF(n) = nphyh2d*min(1,ACC_NSF(n))
-      if (acc_pbot(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_PBOT(n) /= 0) nphyh2d = nphyh2d+1
       ACC_PBOT(n) = nphyh2d*min(1,ACC_PBOT(n))
-      if (acc_psrf(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_PSRF(n) /= 0) nphyh2d = nphyh2d+1
       ACC_PSRF(n) = nphyh2d*min(1,ACC_PSRF(n))
-      if (acc_rfiflx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_RFIFLX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_RFIFLX(n) = nphyh2d*min(1,ACC_RFIFLX(n))
-      if (acc_rnfflx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_RNFFLX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_RNFFLX(n) = nphyh2d*min(1,ACC_RNFFLX(n))
-      if (acc_surflx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SURFLX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SURFLX(n) = nphyh2d*min(1,ACC_SURFLX(n))
-      if (acc_surrlx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SURRLX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SURRLX(n) = nphyh2d*min(1,ACC_SURRLX(n))
-      if (acc_salflx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SALFLX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SALFLX(n) = nphyh2d*min(1,ACC_SALFLX(n))
-      if (acc_salrlx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SALRLX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SALRLX(n) = nphyh2d*min(1,ACC_SALRLX(n))
-      if (acc_sbot(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SBOT(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SBOT(n) = nphyh2d*min(1,ACC_SBOT(n))
-      if (acc_sealv(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SEALV(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SEALV(n) = nphyh2d*min(1,ACC_SEALV(n))
-      if (acc_slvsq(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SLVSQ(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SLVSQ(n) = nphyh2d*min(1,ACC_SLVSQ(n))
-      if (acc_sfl(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SFL(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SFL(n) = nphyh2d*min(1,ACC_SFL(n))
-      if (acc_sigmx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SIGMX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SIGMX(n) = nphyh2d*min(1,ACC_SIGMX(n))
-      if (acc_sop(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SOP(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SOP(n) = nphyh2d*min(1,ACC_SOP(n))
-      if (acc_sss(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SSS(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SSS(n) = nphyh2d*min(1,ACC_SSS(n))
-      if (acc_ssssq(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SSSSQ(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SSSSQ(n) = nphyh2d*min(1,ACC_SSSSQ(n))
-      if (acc_sst(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SST(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SST(n) = nphyh2d*min(1,ACC_SST(n))
-      if (acc_sstsq(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SSTSQ(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SSTSQ(n) = nphyh2d*min(1,ACC_SSTSQ(n))
-      if (acc_swa(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_SWA(n) /= 0) nphyh2d = nphyh2d+1
       ACC_SWA(n) = nphyh2d*min(1,ACC_SWA(n))
-      if (acc_t20d(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_T20D(n) /= 0) nphyh2d = nphyh2d+1
       ACC_T20D(n) = nphyh2d*min(1,ACC_T20D(n))
-      if (acc_taux(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_TAUX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_TAUX(n) = nphyh2d*min(1,ACC_TAUX(n))
-      if (acc_tauy(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_TAUY(n) /= 0) nphyh2d = nphyh2d+1
       ACC_TAUY(n) = nphyh2d*min(1,ACC_TAUY(n))
-      if (acc_tbot(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_TBOT(n) /= 0) nphyh2d = nphyh2d+1
       ACC_TBOT(n) = nphyh2d*min(1,ACC_TBOT(n))
-      if (acc_tice(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_TICE(n) /= 0) nphyh2d = nphyh2d+1
       ACC_TICE(n) = nphyh2d*min(1,ACC_TICE(n))
-      if (acc_tsrf(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_TSRF(n) /= 0) nphyh2d = nphyh2d+1
       ACC_TSRF(n) = nphyh2d*min(1,ACC_TSRF(n))
-      if (acc_ub(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_UB(n) /= 0) nphyh2d = nphyh2d+1
       ACC_UB(n) = nphyh2d*min(1,ACC_UB(n))
-      if (acc_ubflxs(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_UBFLXS(n) /= 0) nphyh2d = nphyh2d+1
       ACC_UBFLXS(n) = nphyh2d*min(1,ACC_UBFLXS(n))
-      if (acc_uice(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_UICE(n) /= 0) nphyh2d = nphyh2d+1
       ACC_UICE(n) = nphyh2d*min(1,ACC_UICE(n))
-      if (acc_ustar(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_USTAR(n) /= 0) nphyh2d = nphyh2d+1
       ACC_USTAR(n) = nphyh2d*min(1,ACC_USTAR(n))
-      if (acc_ustar3(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_USTAR3(n) /= 0) nphyh2d = nphyh2d+1
       ACC_USTAR3(n) = nphyh2d*min(1,ACC_USTAR3(n))
-      if (acc_ustokes(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_USTOKES(n) /= 0) nphyh2d = nphyh2d+1
       ACC_USTOKES(n) = nphyh2d*min(1,ACC_USTOKES(n))
-      if (acc_vb(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_VB(n) /= 0) nphyh2d = nphyh2d+1
       ACC_VB(n) = nphyh2d*min(1,ACC_VB(n))
-      if (acc_vbflxs(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_VBFLXS(n) /= 0) nphyh2d = nphyh2d+1
       ACC_VBFLXS(n) = nphyh2d*min(1,ACC_VBFLXS(n))
-      if (acc_vice(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_VICE(n) /= 0) nphyh2d = nphyh2d+1
       ACC_VICE(n) = nphyh2d*min(1,ACC_VICE(n))
-      if (acc_vstokes(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_VSTOKES(n) /= 0) nphyh2d = nphyh2d+1
       ACC_VSTOKES(n) = nphyh2d*min(1,ACC_VSTOKES(n))
-      if (acc_ztx(n) /= 0) nphyh2d = nphyh2d+1
+      if (ACC_ZTX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_ZTX(n) = nphyh2d*min(1,ACC_ZTX(n))
 
-      if (acc_bfsq(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_BFSQ(n) /= 0) nphylyr = nphylyr+1
       ACC_BFSQ(n) = nphylyr*min(1,ACC_BFSQ(n))
-      if (acc_difdia(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DIFDIA(n) /= 0) nphylyr = nphylyr+1
       ACC_DIFDIA(n) = nphylyr*min(1,ACC_DIFDIA(n))
-      if (acc_difvmo(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DIFVMO(n) /= 0) nphylyr = nphylyr+1
       ACC_DIFVMO(n) = nphylyr*min(1,ACC_DIFVMO(n))
-      if (acc_difvho(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DIFVHO(n) /= 0) nphylyr = nphylyr+1
       ACC_DIFVHO(n) = nphylyr*min(1,ACC_DIFVHO(n))
-      if (acc_difvso(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DIFVSO(n) /= 0) nphylyr = nphylyr+1
       ACC_DIFVSO(n) = nphylyr*min(1,ACC_DIFVSO(n))
-      if (acc_difint(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DIFINT(n) /= 0) nphylyr = nphylyr+1
       ACC_DIFINT(n) = nphylyr*min(1,ACC_DIFINT(n))
-      if (acc_difiso(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DIFISO(n) /= 0) nphylyr = nphylyr+1
       ACC_DIFISO(n) = nphylyr*min(1,ACC_DIFISO(n))
-      if (acc_dp(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DP(n) /= 0) nphylyr = nphylyr+1
       ACC_DP(n) = nphylyr*min(1,ACC_DP(n))
-      if (acc_dpu(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DPU(n) /= 0) nphylyr = nphylyr+1
       ACC_DPU(n) = nphylyr*min(1,ACC_DPU(n))
-      if (acc_dpv(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DPV(n) /= 0) nphylyr = nphylyr+1
       ACC_DPV(n) = nphylyr*min(1,ACC_DPV(n))
-      if (acc_dz(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DZ(n) /= 0) nphylyr = nphylyr+1
       ACC_DZ(n) = nphylyr*min(1,ACC_DZ(n))
-      if (acc_saln(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_SALN(n) /= 0) nphylyr = nphylyr+1
       ACC_SALN(n) = nphylyr*min(1,ACC_SALN(n))
-      if (acc_temp(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_TEMP(n) /= 0) nphylyr = nphylyr+1
       ACC_TEMP(n) = nphylyr*min(1,ACC_TEMP(n))
-      if (acc_uflx(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_UFLX(n) /= 0) nphylyr = nphylyr+1
       ACC_UFLX(n) = nphylyr*min(1,ACC_UFLX(n))
-      if (acc_utflx(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_UTFLX(n) /= 0) nphylyr = nphylyr+1
       ACC_UTFLX(n) = nphylyr*min(1,ACC_UTFLX(n))
-      if (acc_usflx(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_USFLX(n) /= 0) nphylyr = nphylyr+1
       ACC_USFLX(n) = nphylyr*min(1,ACC_USFLX(n))
-      if (acc_umfltd(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_UMFLTD(n) /= 0) nphylyr = nphylyr+1
       ACC_UMFLTD(n) = nphylyr*min(1,ACC_UMFLTD(n))
-      if (acc_umflsm(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_UMFLSM(n) /= 0) nphylyr = nphylyr+1
       ACC_UMFLSM(n) = nphylyr*min(1,ACC_UMFLSM(n))
-      if (acc_utfltd(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_UTFLTD(n) /= 0) nphylyr = nphylyr+1
       ACC_UTFLTD(n) = nphylyr*min(1,ACC_UTFLTD(n))
-      if (acc_utflsm(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_UTFLSM(n) /= 0) nphylyr = nphylyr+1
       ACC_UTFLSM(n) = nphylyr*min(1,ACC_UTFLSM(n))
-      if (acc_utflld(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_UTFLLD(n) /= 0) nphylyr = nphylyr+1
       ACC_UTFLLD(n) = nphylyr*min(1,ACC_UTFLLD(n))
-      if (acc_usfltd(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_USFLTD(n) /= 0) nphylyr = nphylyr+1
       ACC_USFLTD(n) = nphylyr*min(1,ACC_USFLTD(n))
-      if (acc_usflsm(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_USFLSM(n) /= 0) nphylyr = nphylyr+1
       ACC_USFLSM(n) = nphylyr*min(1,ACC_USFLSM(n))
-      if (acc_usflld(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_USFLLD(n) /= 0) nphylyr = nphylyr+1
       ACC_USFLLD(n) = nphylyr*min(1,ACC_USFLLD(n))
-      if (acc_uvel(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_UVEL(n) /= 0) nphylyr = nphylyr+1
       ACC_UVEL(n) = nphylyr*min(1,ACC_UVEL(n))
-      if (acc_vflx(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VFLX(n) /= 0) nphylyr = nphylyr+1
       ACC_VFLX(n) = nphylyr*min(1,ACC_VFLX(n))
-      if (acc_vtflx(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VTFLX(n) /= 0) nphylyr = nphylyr+1
       ACC_VTFLX(n) = nphylyr*min(1,ACC_VTFLX(n))
-      if (acc_vsflx(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VSFLX(n) /= 0) nphylyr = nphylyr+1
       ACC_VSFLX(n) = nphylyr*min(1,ACC_VSFLX(n))
-      if (acc_vmfltd(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VMFLTD(n) /= 0) nphylyr = nphylyr+1
       ACC_VMFLTD(n) = nphylyr*min(1,ACC_VMFLTD(n))
-      if (acc_vmflsm(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VMFLSM(n) /= 0) nphylyr = nphylyr+1
       ACC_VMFLSM(n) = nphylyr*min(1,ACC_VMFLSM(n))
-      if (acc_vtfltd(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VTFLTD(n) /= 0) nphylyr = nphylyr+1
       ACC_VTFLTD(n) = nphylyr*min(1,ACC_VTFLTD(n))
-      if (acc_vtflsm(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VTFLSM(n) /= 0) nphylyr = nphylyr+1
       ACC_VTFLSM(n) = nphylyr*min(1,ACC_VTFLSM(n))
-      if (acc_vtflld(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VTFLLD(n) /= 0) nphylyr = nphylyr+1
       ACC_VTFLLD(n) = nphylyr*min(1,ACC_VTFLLD(n))
-      if (acc_vsfltd(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VSFLTD(n) /= 0) nphylyr = nphylyr+1
       ACC_VSFLTD(n) = nphylyr*min(1,ACC_VSFLTD(n))
-      if (acc_vsflsm(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VSFLSM(n) /= 0) nphylyr = nphylyr+1
       ACC_VSFLSM(n) = nphylyr*min(1,ACC_VSFLSM(n))
-      if (acc_vsflld(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VSFLLD(n) /= 0) nphylyr = nphylyr+1
       ACC_VSFLLD(n) = nphylyr*min(1,ACC_VSFLLD(n))
-      if (acc_vvel(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_VVEL(n) /= 0) nphylyr = nphylyr+1
       ACC_VVEL(n) = nphylyr*min(1,ACC_VVEL(n))
-      if (acc_wflx(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_WFLX(n) /= 0) nphylyr = nphylyr+1
       ACC_WFLX(n) = nphylyr*min(1,ACC_WFLX(n))
-      if (acc_wflx2(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_WFLX2(n) /= 0) nphylyr = nphylyr+1
       ACC_WFLX2(n) = nphylyr*min(1,ACC_WFLX2(n))
-      if (acc_avdsg(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_AVDSG(n) /= 0) nphylyr = nphylyr+1
       ACC_AVDSG(n) = nphylyr*min(1,ACC_AVDSG(n))
-      if (acc_dpvor(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_DPVOR(n) /= 0) nphylyr = nphylyr+1
       ACC_DPVOR(n) = nphylyr*min(1,ACC_DPVOR(n))
-      if (acc_tke(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_TKE(n) /= 0) nphylyr = nphylyr+1
       ACC_TKE(n) = nphylyr*min(1,ACC_TKE(n))
-      if (acc_gls_psi(n) /= 0) nphylyr = nphylyr+1
+      if (ACC_GLS_PSI(n) /= 0) nphylyr = nphylyr+1
       ACC_GLS_PSI(n) = nphylyr*min(1,ACC_GLS_PSI(n))
 
-      if (acc_bfsqlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_BFSQLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_BFSQLVL(n) = nphylvl*min(1,ACC_BFSQLVL(n))
-      if (acc_difdialvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_DIFDIALVL(n) /= 0) nphylvl = nphylvl+1
       ACC_DIFDIALVL(n) = nphylvl*min(1,ACC_DIFDIALVL(n))
-      if (acc_difvmolvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_DIFVMOLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_DIFVMOLVL(n) = nphylvl*min(1,ACC_DIFVMOLVL(n))
-      if (acc_difvholvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_DIFVHOLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_DIFVHOLVL(n) = nphylvl*min(1,ACC_DIFVHOLVL(n))
-      if (acc_difvsolvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_DIFVSOLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_DIFVSOLVL(n) = nphylvl*min(1,ACC_DIFVSOLVL(n))
-      if (acc_difintlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_DIFINTLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_DIFINTLVL(n) = nphylvl*min(1,ACC_DIFINTLVL(n))
-      if (acc_difisolvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_DIFISOLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_DIFISOLVL(n) = nphylvl*min(1,ACC_DIFISOLVL(n))
-      if (acc_dzlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_DZLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_DZLVL(n) = nphylvl*min(1,ACC_DZLVL(n))
-      if (acc_salnlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_SALNLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_SALNLVL(n) = nphylvl*min(1,ACC_SALNLVL(n))
-      if (acc_templvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_TEMPLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_TEMPLVL(n) = nphylvl*min(1,ACC_TEMPLVL(n))
-      if (acc_uflxlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UFLXLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_UFLXLVL(n) = nphylvl*min(1,ACC_UFLXLVL(n))
-      if (acc_uflxold(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UFLXOLD(n) /= 0) nphylvl = nphylvl+1
       ACC_UFLXOLD(n) = nphylvl*min(1,ACC_UFLXOLD(n))
-      if (acc_utflxlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UTFLXLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_UTFLXLVL(n) = nphylvl*min(1,ACC_UTFLXLVL(n))
-      if (acc_usflxlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_USFLXLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_USFLXLVL(n) = nphylvl*min(1,ACC_USFLXLVL(n))
-      if (acc_umfltdlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UMFLTDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_UMFLTDLVL(n) = nphylvl*min(1,ACC_UMFLTDLVL(n))
-      if (acc_umflsmlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UMFLSMLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_UMFLSMLVL(n) = nphylvl*min(1,ACC_UMFLSMLVL(n))
-      if (acc_utfltdlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UTFLTDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_UTFLTDLVL(n) = nphylvl*min(1,ACC_UTFLTDLVL(n))
-      if (acc_utflsmlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UTFLSMLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_UTFLSMLVL(n) = nphylvl*min(1,ACC_UTFLSMLVL(n))
-      if (acc_utflldlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UTFLLDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_UTFLLDLVL(n) = nphylvl*min(1,ACC_UTFLLDLVL(n))
-      if (acc_usfltdlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_USFLTDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_USFLTDLVL(n) = nphylvl*min(1,ACC_USFLTDLVL(n))
-      if (acc_usflsmlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_USFLSMLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_USFLSMLVL(n) = nphylvl*min(1,ACC_USFLSMLVL(n))
-      if (acc_usflldlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_USFLLDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_USFLLDLVL(n) = nphylvl*min(1,ACC_USFLLDLVL(n))
-      if (acc_uvellvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_UVELLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_UVELLVL(n) = nphylvl*min(1,ACC_UVELLVL(n))
-      if (acc_vflxlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VFLXLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VFLXLVL(n) = nphylvl*min(1,ACC_VFLXLVL(n))
-      if (acc_vflxold(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VFLXOLD(n) /= 0) nphylvl = nphylvl+1
       ACC_VFLXOLD(n) = nphylvl*min(1,ACC_VFLXOLD(n))
-      if (acc_vtflxlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VTFLXLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VTFLXLVL(n) = nphylvl*min(1,ACC_VTFLXLVL(n))
-      if (acc_vsflxlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VSFLXLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VSFLXLVL(n) = nphylvl*min(1,ACC_VSFLXLVL(n))
-      if (acc_vmfltdlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VMFLTDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VMFLTDLVL(n) = nphylvl*min(1,ACC_VMFLTDLVL(n))
-      if (acc_vmflsmlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VMFLSMLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VMFLSMLVL(n) = nphylvl*min(1,ACC_VMFLSMLVL(n))
-      if (acc_vtfltdlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VTFLTDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VTFLTDLVL(n) = nphylvl*min(1,ACC_VTFLTDLVL(n))
-      if (acc_vtflsmlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VTFLSMLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VTFLSMLVL(n) = nphylvl*min(1,ACC_VTFLSMLVL(n))
-      if (acc_vtflldlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VTFLLDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VTFLLDLVL(n) = nphylvl*min(1,ACC_VTFLLDLVL(n))
-      if (acc_vsfltdlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VSFLTDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VSFLTDLVL(n) = nphylvl*min(1,ACC_VSFLTDLVL(n))
-      if (acc_vsflsmlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VSFLSMLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VSFLSMLVL(n) = nphylvl*min(1,ACC_VSFLSMLVL(n))
-      if (acc_vsflldlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VSFLLDLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VSFLLDLVL(n) = nphylvl*min(1,ACC_VSFLLDLVL(n))
-      if (acc_vvellvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_VVELLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_VVELLVL(n) = nphylvl*min(1,ACC_VVELLVL(n))
-      if (acc_wflxlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_WFLXLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_WFLXLVL(n) = nphylvl*min(1,ACC_WFLXLVL(n))
-      if (acc_wflx2lvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_WFLX2LVL(n) /= 0) nphylvl = nphylvl+1
       ACC_WFLX2LVL(n) = nphylvl*min(1,ACC_WFLX2LVL(n))
-      if (acc_pvlvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_PVLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_PVLVL(n) = nphylvl*min(1,ACC_PVLVL(n))
-      if (acc_tkelvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_TKELVL(n) /= 0) nphylvl = nphylvl+1
       ACC_TKELVL(n) = nphylvl*min(1,ACC_TKELVL(n))
-      if (acc_gls_psilvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_GLS_PSILVL(n) /= 0) nphylvl = nphylvl+1
       ACC_GLS_PSILVL(n) = nphylvl*min(1,ACC_GLS_PSILVL(n))
-      if (acc_idlagelvl(n) /= 0) nphylvl = nphylvl+1
+      if (ACC_IDLAGELVL(n) /= 0) nphylvl = nphylvl+1
       ACC_IDLAGELVL(n) = nphylvl*min(1,ACC_IDLAGELVL(n))
 
       ! End loop over io groups
@@ -1087,7 +1103,7 @@ contains
 
     ! Define auxillary variables
 
-    if (sum(acc_uice(1:nphy)+acc_vice(1:nphy)) /= 0) then
+    if (sum(ACC_UICE(1:nphy)+ACC_VICE(1:nphy)) /= 0) then
       call xctilr(hicem, 1,1, 1,1, halo_ps)
       call xctilr(ficem, 1,1, 1,1, halo_ps)
       !$omp parallel do private(l,i)
@@ -1108,7 +1124,7 @@ contains
       !$omp end parallel do
     end if
 
-    if (sum(acc_mld(1:nphy)+acc_maxmld(1:nphy)) /= 0) then
+    if (sum(ACC_BLD(1:nphy)+ACC_MAXBLD(1:nphy)) /= 0) then
       select case (vcoord_tag)
         case (vcoord_isopyc_bulkml)
           !$omp parallel do private(l,i)
@@ -1133,7 +1149,7 @@ contains
       end select
     end if
 
-    if (sum(acc_uvel(1:nphy)+acc_uvellvl(1:nphy)) /= 0) then
+    if (sum(ACC_UVEL(1:nphy)+ACC_UVELLVL(1:nphy)) /= 0) then
       !$omp parallel do private(k,km,l,i)
       do j = 1,jj
         do k = 1,kk
@@ -1148,7 +1164,7 @@ contains
       !$omp end parallel do
     end if
 
-    if (sum(acc_vvel(1:nphy)+acc_vvellvl(1:nphy)) /= 0) then
+    if (sum(ACC_VVEL(1:nphy)+ACC_VVELLVL(1:nphy)) /= 0) then
       !$omp parallel do private(k,km,l,i)
       do j = 1,jj+1
         do k = 1,kk
@@ -1163,7 +1179,7 @@ contains
       !$omp end parallel do
     end if
 
-    if (sum(acc_avdsg(1:nphy)+acc_pvlvl(1:nphy)) /= 0) then
+    if (sum(ACC_AVDSG(1:nphy)+ACC_PVLVL(1:nphy)) /= 0) then
       !$omp parallel do private(l,i,k,km,dsig)
       do j = 1,jj
         do l = 1,isp(j)
@@ -1203,7 +1219,7 @@ contains
       !$omp end parallel do
     end if
 
-    if (sum(acc_sbot(1:nphy)+acc_tbot(1:nphy)) /= 0) then
+    if (sum(ACC_SBOT(1:nphy)+ACC_TBOT(1:nphy)) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isp(j)
@@ -1248,7 +1264,7 @@ contains
       !$omp end parallel do
     end if
 
-    if (sum(acc_t20d(1:nphy)) /= 0) then
+    if (sum(ACC_T20D(1:nphy)) /= 0) then
       !$omp parallel do private(l,i,k,km,kup,zup,zlo,tup,tlo)
       do j = 1,jj
         do l = 1,isp(j)
@@ -1444,11 +1460,14 @@ contains
     ! bottom temperature [degC]
     call acch2d(ACC_TBOT,tbot,dummy,0,'p')
 
-    ! mixed layer pressure thickness [kg/m/s^2]
-    call acch2d(ACC_MLD,dpml,dummy,0,'p')
+    ! boundary layer pressure thickness [kg/m/s^2]
+    call acch2d(ACC_BLD,dpml,dummy,0,'p')
 
-    ! mixed layer thickness using "sigma-t" criterion [m]
-    call acch2d(ACC_MLTS,mlts,dummy,0,'p')
+    ! mixed layer thickness defined by Levitus (1982) [m]
+    call acch2d(ACC_MLDL82,mldl82,dummy,0,'p')
+
+    ! mixed layer thickness defined by de Boyer Montégut et al. (2004) [m]
+    call acch2d(ACC_MLDB04,mldb04,dummy,0,'p')
 
     ! 20C isoterm depth [m]
     call acch2d(ACC_T20D,t20d,dummy,0,'p')
@@ -1475,21 +1494,33 @@ contains
     ! store minimum or maximum of 2d diagnostic variables
     !---------------------------------------------------------------
 
-    ! maximum mixed layer pressure thickness [kg/m/s^2]
-    call maxh2d(ACC_MAXMLD,dpml,'p')
+    ! maximum boundary layer pressure thickness [kg/m/s^2]
+    call maxh2d(ACC_MAXBLD,dpml,'p')
 
-    ! minimum mixed layer thickness using "sigma-t" criterion [m]
-    call minh2d(ACC_MLTSMN,mlts,'p')
+    ! minimum mixed layer thickness defined by Levitus (1982) [m]
+    call minh2d(ACC_MLDL82MN,mldl82,'p')
 
-    ! maximum mixed layer thickness using "sigma-t" criterion [m]
-    call maxh2d(ACC_MLTSMX,mlts,'p')
+    ! maximum mixed layer thickness defined by Levitus (1982) [m]
+    call maxh2d(ACC_MLDL82MX,mldl82,'p')
+
+    ! minimum mixed layer thickness defined by de Boyer Montégut et al. (2004)
+    ! [m]
+    call minh2d(ACC_MLDB04MN,mldb04,'p')
+
+    ! maximum mixed layer thickness defined by de Boyer Montégut et al. (2004)
+    ! [m]
+    call maxh2d(ACC_MLDB04MX,mldb04,'p')
 
     !---------------------------------------------------------------
     ! store squared of 2d diagnostic variables
     !---------------------------------------------------------------
 
-    ! mixed layer thickness squared using "sigma-t" criterion [m^2]
-    call sqh2d(ACC_MLTSSQ,mlts,'p')
+    ! mixed layer thickness squared defined by Levitus (1982) [m^2]
+    call sqh2d(ACC_MLDL82SQ,mldl82,'p')
+
+    ! mixed layer thickness squared defined by de Boyer Montégut et al. (2004)
+    ! [m^2]
+    call sqh2d(ACC_MLDB04SQ,mldb04,'p')
 
     ! sea level height squared [m^2]
     call sqh2d(ACC_SLVSQ,z(1-nbdy,1-nbdy,1),'p')
@@ -1641,7 +1672,7 @@ contains
     !---------------------------------------------------------------
 
     do iogrp = 1,nphy
-      if (acc_wflxlvl(iogrp)+acc_wflx2lvl(iogrp) /= 0) then
+      if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp) /= 0) then
         !$omp parallel do private(k,l,i)
         do j = 1,jj+1
           do k = 1,ddm
@@ -1998,7 +2029,7 @@ contains
 
     ! Accumulate vertical velocity
     do iogrp = 1,nphy
-      if (ACC_WFLX(iogrp)+ACC_WFLX2(iogrp)+ACC_WFLXLVL(iogrp) + acc_wflx2lvl(iogrp) /= 0) then
+      if (ACC_WFLX(iogrp)+ACC_WFLX2(iogrp)+ACC_WFLXLVL(iogrp) + ACC_WFLX2LVL(iogrp) /= 0) then
          call diavfl(iogrp,m,n,mm,nn,k1m,k1n)
       end if
     end do
@@ -2090,8 +2121,8 @@ contains
        +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
        +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
        +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-       +acc_msfsm (iogrp) +acc_msfld(iogrp) /= 0) call diamer(iogrp)
-    if (acc_voltr(iogrp) /= 0) call diasec(iogrp)
+       +ACC_MSFSM (iogrp)+ACC_MSFLD (iogrp) /= 0) call diamer(iogrp)
+    if (ACC_VOLTR(iogrp) /= 0) call diasec(iogrp)
 
     ! compute barotropic mass streamfunction
     if (h2d_btmstr(iogrp) /= 0) then
@@ -2403,7 +2434,7 @@ contains
     end if
 
     ! get instantaneous values for ice age
-    if (acc_iage(iogrp) /= 0) then
+    if (ACC_IAGE(iogrp) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isp(j)
@@ -2497,7 +2528,7 @@ contains
        +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
        +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
        +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-       +acc_msfsm (iogrp)+acc_msfld (iogrp)+msc_voltr (iogrp) /= 0) then
+       +ACC_MSFSM (iogrp)+ACC_MSFLD (iogrp)+msc_voltr (iogrp) /= 0) then
       call ncdims('slenmax',slenmax)
     end if
 
@@ -2505,7 +2536,7 @@ contains
        +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
        +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
        +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-       +acc_msfsm (iogrp)+acc_msfld (iogrp) /= 0) then
+       +ACC_MSFSM (iogrp)+ACC_MSFLD (iogrp) /= 0) then
       if ((lmax > 0.and.lmax <= ldm)) then
         call ncdims('lat',lmax)
         call ncdims('region',mer_nreg)
@@ -2518,7 +2549,7 @@ contains
       end if
     end if
 
-    if (acc_voltr(iogrp) /= 0) then
+    if (ACC_VOLTR(iogrp) /= 0) then
       if ((sec_num > 0.and.sec_num <= max_sec)) then
         call ncdims('section',sec_num)
       else
@@ -2783,27 +2814,46 @@ contains
     call wrth2d(ACC_ALB(iogrp),H2D_ALB(iogrp),rnacc,0., &
          cmpflg,ip,'p','alb','Surface albedo',' ','1')
 
-    call wrth2d(ACC_MLD(iogrp),H2D_MLD(iogrp),rnacc/onem,0., &
-         cmpflg,ip,'p','mld','Mixed layer depth',' ','m')
+    call wrth2d(ACC_BLD(iogrp),H2D_BLD(iogrp),rnacc/onem,0., &
+         cmpflg,ip,'p','bld','Boundary layer depth',' ','m')
 
-    call wrth2d(ACC_MAXMLD(iogrp),H2D_MAXMLD(iogrp),1./onem,0., &
-         cmpflg,ip,'p','maxmld','Maximum mixed layer depth',' ','m')
+    call wrth2d(ACC_MAXBLD(iogrp),H2D_MAXBLD(iogrp),1./onem,0., &
+         cmpflg,ip,'p','maxbld','Maximum boundary layer depth',' ','m')
 
-    call wrth2d(ACC_MLTS(iogrp),H2D_MLTS(iogrp),rnacc,0., &
-         cmpflg,ip,'p','mlts', &
-         'Mixed layer thickness defined by sigma t',' ','m')
+    call wrth2d(ACC_MLDL82(iogrp),H2D_MLDL82(iogrp),rnacc,0., &
+         cmpflg,ip,'p','mldl82', &
+         'Mixed layer thickness (Levitus, 1982)',' ','m')
 
-    call wrth2d(ACC_MLTSMN(iogrp),H2D_MLTSMN(iogrp),1.,0., &
-         cmpflg,ip,'p','mltsmn', &
-         'Minimum mixed layer thickness defined by sigma t',' ','m')
+    call wrth2d(ACC_MLDL82MN(iogrp),H2D_MLDL82MN(iogrp),1.,0., &
+         cmpflg,ip,'p','mldl82mn', &
+         'Minimum mixed layer thickness (Levitus, 1982)',' ','m')
 
-    call wrth2d(ACC_MLTSMX(iogrp),H2D_MLTSMX(iogrp),1.,0., &
-         cmpflg,ip,'p','mltsmx', &
-         'Maximum mixed layer thickness defined by sigma t',' ','m')
+    call wrth2d(ACC_MLDL82MX(iogrp),H2D_MLDL82MX(iogrp),1.,0., &
+         cmpflg,ip,'p','mldl82mx', &
+         'Maximum mixed layer thickness (Levitus, 1982)',' ','m')
 
-    call wrth2d(ACC_MLTSSQ(iogrp),H2D_MLTSSQ(iogrp),rnacc,0., &
-         cmpflg,ip,'p','mltssq', &
-         'Mixed layer thickness squared defined by sigma t',' ','m2')
+    call wrth2d(ACC_MLDL82SQ(iogrp),H2D_MLDL82SQ(iogrp),rnacc,0., &
+         cmpflg,ip,'p','mldl82sq', &
+         'Mixed layer thickness squared (Levitus, 1982)',' ','m2')
+
+    call wrth2d(ACC_MLDB04(iogrp),H2D_MLDB04(iogrp),rnacc,0., &
+         cmpflg,ip,'p','mldb04', &
+         'Mixed layer thickness (de Boyer Montégut et al., 2004)',' ','m')
+
+    call wrth2d(ACC_MLDB04MN(iogrp),H2D_MLDB04MN(iogrp),1.,0., &
+         cmpflg,ip,'p','mldb04mn', &
+         'Minimum mixed layer thickness (de Boyer Montégut et al., 2004)', &
+         ' ','m')
+
+    call wrth2d(ACC_MLDB04MX(iogrp),H2D_MLDB04MX(iogrp),1.,0., &
+         cmpflg,ip,'p','mldb04mx', &
+         'Maximum mixed layer thickness (de Boyer Montégut et al., 2004)', &
+         ' ','m')
+
+    call wrth2d(ACC_MLDB04SQ(iogrp),H2D_MLDB04SQ(iogrp),rnacc,0., &
+         cmpflg,ip,'p','mldb04sq', &
+         'Mixed layer thickness squared (de Boyer Montégut et al., 2004)', &
+         ' ','m2')
 
     call wrth2d(ACC_T20D(iogrp),H2D_T20D(iogrp),rnacc,0., &
          cmpflg,ip,'p','t20d','20C isoterm depth',' ','m')
@@ -3769,42 +3819,42 @@ contains
     do nfld = 1,8
 
       if     (nfld == 1) then
-        if (acc_mhflx(iogrp) == 0) cycle
+        if (ACC_MHFLX(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLX(iogrp)
         ACC_VIND = ACC_VTFLX(iogrp)
         r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 2) then
-        if (acc_mhftd(iogrp) == 0) cycle
+        if (ACC_MHFTD(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLTD(iogrp)
         ACC_VIND = ACC_VTFLTD(iogrp)
         r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 3) then
-        if (acc_mhfsm(iogrp) == 0) cycle
+        if (ACC_MHFSM(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLSM(iogrp)
         ACC_VIND = ACC_VTFLSM(iogrp)
         r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 4) then
-        if (acc_mhfld(iogrp) == 0) cycle
+        if (ACC_MHFLD(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLLD(iogrp)
         ACC_VIND = ACC_VTFLLD(iogrp)
         r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 5) then
-        if (acc_msflx(iogrp) == 0) cycle
+        if (ACC_MSFLX(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLX(iogrp)
         ACC_VIND = ACC_VSFLX(iogrp)
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 6) then
-        if (acc_msftd(iogrp) == 0) cycle
+        if (ACC_MSFTD(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLTD(iogrp)
         ACC_VIND = ACC_VSFLTD(iogrp)
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 7) then
-        if (acc_msfsm(iogrp) == 0) cycle
+        if (ACC_MSFSM(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLSM(iogrp)
         ACC_VIND = ACC_VSFLSM(iogrp)
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 8) then
-        if (acc_msfld(iogrp) == 0) cycle
+        if (ACC_MSFLD(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLLD(iogrp)
         ACC_VIND = ACC_VSFLLD(iogrp)
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
@@ -3951,7 +4001,7 @@ contains
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
           k = 1
-          do while (phyh2d(i,j,acc_sigmx(iogrp))*r >= sigmar(i,j,k))
+          do while (phyh2d(i,j,ACC_SIGMX(iogrp))*r >= sigmar(i,j,k))
             k = k+1
             if (k == kk) exit
           end do
@@ -3985,15 +4035,15 @@ contains
     do nfld = 1,3
 
       if     (nfld == 1) then
-        if (acc_mmflxl(iogrp) == 0) cycle
+        if (ACC_MMFLXL(iogrp) == 0) cycle
         ACC_UIND = ACC_UFLX(iogrp)
         ACC_VIND = ACC_VFLX(iogrp)
       else if (nfld == 2) then
-        if (acc_mmftdl(iogrp) == 0) cycle
+        if (ACC_MMFTDL(iogrp) == 0) cycle
         ACC_UIND = ACC_UMFLTD(iogrp)
         ACC_VIND = ACC_VMFLTD(iogrp)
       else if (nfld == 3) then
-        if (acc_mmfsml(iogrp) == 0) cycle
+        if (ACC_MMFSML(iogrp) == 0) cycle
         ACC_UIND = ACC_UMFLSM(iogrp)
         ACC_VIND = ACC_VMFLSM(iogrp)
       else
@@ -4160,15 +4210,15 @@ contains
     do nfld = 1,3
 
       if     (nfld == 1) then
-        if (acc_mmflxd(iogrp) == 0) cycle
+        if (ACC_MMFLXD(iogrp) == 0) cycle
         ACC_UIND = ACC_UFLXLVL(iogrp)
         ACC_VIND = ACC_VFLXLVL(iogrp)
       else if (nfld == 2) then
-        if (acc_mmftdd(iogrp) == 0) cycle
+        if (ACC_MMFTDD(iogrp) == 0) cycle
         ACC_UIND = ACC_UMFLTDLVL(iogrp)
         ACC_VIND = ACC_VMFLTDLVL(iogrp)
       else if (nfld == 3) then
-        if (acc_mmfsmd(iogrp) == 0) cycle
+        if (ACC_MMFSMD(iogrp) == 0) cycle
         ACC_UIND = ACC_UMFLSMLVL(iogrp)
         ACC_VIND = ACC_VMFLSMLVL(iogrp)
       else
@@ -4293,7 +4343,7 @@ contains
     !
     ! Compute vertical mass flux at layer interfaces
     !
-    if (acc_wflx(iogrp)+acc_wflx2(iogrp) /= 0) then
+    if (ACC_WFLX(iogrp)+ACC_WFLX2(iogrp) /= 0) then
 
       !$omp parallel do private(i)
       do j = 1,jj
@@ -4325,7 +4375,7 @@ contains
     end if
 
     ! Computation of vertical mass flux at levitus layer interfaces
-    if (acc_wflxlvl(iogrp)+acc_wflx2lvl(iogrp) /= 0) then
+    if (ACC_WFLXLVL(iogrp)+ACC_WFLX2LVL(iogrp) /= 0) then
 
       call xctilr(phylvl(1-nbdy,1-nbdy,1,ACC_UFLXLVL(iogrp)), &
            1,ddm, 1,1, halo_uv)
@@ -5543,12 +5593,16 @@ contains
     call inih2d(ACC_SSTSQ(iogrp),'p',0.)
     call inih2d(ACC_TBOT(iogrp),'p',0.)
     call inih2d(ACC_SIGMX(iogrp),'p',0.)
-    call inih2d(ACC_MLD(iogrp),'p',0.)
-    call inih2d(ACC_MAXMLD(iogrp),'p',-spval)
-    call inih2d(ACC_MLTS(iogrp),'p',0.)
-    call inih2d(ACC_MLTSMN(iogrp),'p', spval)
-    call inih2d(ACC_MLTSMX(iogrp),'p',-spval)
-    call inih2d(ACC_MLTSSQ(iogrp),'p',0.)
+    call inih2d(ACC_BLD(iogrp),'p',0.)
+    call inih2d(ACC_MAXBLD(iogrp),'p',-spval)
+    call inih2d(ACC_MLDL82(iogrp),'p',0.)
+    call inih2d(ACC_MLDL82MN(iogrp),'p', spval)
+    call inih2d(ACC_MLDL82MX(iogrp),'p',-spval)
+    call inih2d(ACC_MLDL82SQ(iogrp),'p',0.)
+    call inih2d(ACC_MLDB04(iogrp),'p',0.)
+    call inih2d(ACC_MLDB04MN(iogrp),'p', spval)
+    call inih2d(ACC_MLDB04MX(iogrp),'p',-spval)
+    call inih2d(ACC_MLDB04SQ(iogrp),'p',0.)
     call inih2d(ACC_T20D(iogrp),'p',0.)
     call inih2d(ACC_ALB(iogrp),'p',0.)
     call inih2d(ACC_SWA(iogrp),'p',0.)
@@ -6602,24 +6656,38 @@ contains
     call ncdefvar3d(H2D_ALB(iogrp),cmpflg,'p','alb', &
          'Surface albedo',' ','1',0)
 
-    call ncdefvar3d(H2D_MLD(iogrp),cmpflg,'p','mld', &
-         'Mixed layer depth',' ','m',0)
+    call ncdefvar3d(H2D_BLD(iogrp),cmpflg,'p','bld', &
+         'Boundary layer depth',' ','m',0)
 
-    call ncdefvar3d(H2D_MAXMLD(iogrp),cmpflg,'p','maxmld', &
-         'Maximum mixed layer depth',' ','m',0)
+    call ncdefvar3d(H2D_MAXBLD(iogrp),cmpflg,'p','maxbld', &
+         'Maximum boundary layer depth',' ','m',0)
 
-    call ncdefvar3d(H2D_MLTS(iogrp),cmpflg,'p','mlts', &
-         'Mixed layer thickness defined by sigma t',' ','m',0)
+    call ncdefvar3d(H2D_MLDL82(iogrp),cmpflg,'p','mldl82', &
+         'Mixed layer thickness (Levitus, 1982)',' ','m',0)
 
-    call ncdefvar3d(H2D_MLTSMN(iogrp),cmpflg,'p','mltsmn', &
-         'Minimum mixed layer thickness defined by sigma t',' ','m',0)
+    call ncdefvar3d(H2D_MLDL82MN(iogrp),cmpflg,'p','mldl82mn', &
+         'Minimum mixed layer thickness (Levitus, 1982)',' ','m',0)
 
-    call ncdefvar3d(H2D_MLTSMX(iogrp),cmpflg,'p','mltsmx', &
-         'Maximum mixed layer thickness defined by sigma t',' ','m',0)
+    call ncdefvar3d(H2D_MLDL82MX(iogrp),cmpflg,'p','mldl82mx', &
+         'Maximum mixed layer thickness (Levitus, 1982)',' ','m',0)
 
-    call ncdefvar3d(H2D_MLTSSQ(iogrp),cmpflg,'p','mltssq', &
-         'Maximum mixed layer thickness squared defined by sigma t',' ', &
-         'm2',0)
+    call ncdefvar3d(H2D_MLDL82SQ(iogrp),cmpflg,'p','mldl82sq', &
+         'Mixed layer thickness squared (Levitus, 1982)',' ','m2',0)
+
+    call ncdefvar3d(H2D_MLDB04(iogrp),cmpflg,'p','mldb04', &
+         'Mixed layer thickness (de Boyer Montégut et al., 2004)',' ','m',0)
+
+    call ncdefvar3d(H2D_MLDB04MN(iogrp),cmpflg,'p','mldb04mn', &
+         'Minimum mixed layer thickness (de Boyer Montégut et al., 2004)', &
+         ' ','m',0)
+
+    call ncdefvar3d(H2D_MLDB04MX(iogrp),cmpflg,'p','mldb04mx', &
+         'Maximum mixed layer thickness (de Boyer Montégut et al., 2004)', &
+         ' ','m',0)
+
+    call ncdefvar3d(H2D_MLDB04SQ(iogrp),cmpflg,'p','mldb04sq', &
+         'Mixed layer thickness squared (de Boyer Montégut et al., 2004)', &
+         ' ','m2',0)
 
     call ncdefvar3d(H2D_T20D(iogrp),cmpflg,'p','t20d', &
          '20C isoterm depth',' ','m',0)

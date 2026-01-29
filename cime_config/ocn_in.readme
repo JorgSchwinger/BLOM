@@ -44,8 +44,11 @@
 !            'uc' (upstream column), 'dluc' (depth limited upstream
 !            column) (a)
 ! ADVMTH   : Advection method. Valid methods: 'remap', 'cppm' (a)
+! CPPM_COMPATIBILITY : CPPM compatibility. Valid options: 'full', 'partial' (a)
 ! CPPM_LIMITING : CPPM limiting. Valid methods: 'monotonic',
 !                 'non_oscillatory' (a)
+! MLDMTH   : Method for estimating mixed layer depth. Valid methods:
+!            'lev82', 'boy04' (a)
 ! MLRMTH   : Mixed layer restratification method. Valid methods: 'none',
 !            'fox08','bod23' (a)
 ! CE       : Efficiency factor for the restratification by mixed layer
@@ -279,12 +282,16 @@
 !   LAMULT   - Langmuir enhancement factor []
 !   LASL     - Surface layer averaged Langmuir number []
 !   LIP      - liquid precipitation [kg m-2 s-1]
-!   MAXMLD   - maximum mixed layer depth [m]
-!   MLD      - mixed layer depth [m]
-!   MLTS     - mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSMN   - minimum mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSMX   - maximum mixed layer thickness using "sigma-t" criterion [m]
-!   MLTSSQ   - mixed layer thickness squared using "sigma-t" criterion [m2]
+!   MAXBLD   - maximum boundary layer depth [m]
+!   BLD      - boundary layer depth [m]
+!   MLDL82   - mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82MN - minimum mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82MX - maximum mixed layer thickness (Levitus, 1982) [m]
+!   MLDL82SQ - mixed layer thickness squared (Levitus, 1982) [m2]
+!   MLDB04   - mixed layer thickness (de Boyer Montégut et al., 2004) [m]
+!   MLDB04MN - minimum mixed layer thickn. (de Boyer Montégut et al., 2004) [m]
+!   MLDB04MX - maximum mixed layer thickn. (de Boyer Montégut et al., 2004) [m]
+!   MLDB04SQ - mixed layer thick. squared (de Boyer Montégut et al., 2004) [m2]
 !   MTKEUS   - mixed layer TKE tendency related to friction velocity [kg s-3]
 !   MTKENI   - mixed layer TKE tendency related to near inertial mot. [kg s-3]
 !   MTKEBF   - mixed layer TKE tendency related to buoyancy forcing [kg s-3]

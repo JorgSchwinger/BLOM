@@ -49,6 +49,7 @@ module mod_rdlim
                              use_stream_relaxation, use_stream_dust
   use mod_swabs,       only: swamth, jwtype, chlopt, ccfile, svfile
   use mod_diffusion,   only: readnml_diffusion
+  use mod_cmnfld,      only: mldmth
   use mod_eddtra,      only: mlrmth, ce, cl, tau_mlr, tau_growing_hbl, &
                              tau_decaying_hbl, tau_growing_hml, &
                              tau_decaying_hml, lfmin, mstar, nstar, &
@@ -84,8 +85,9 @@ module mod_rdlim
                              h2d_abswnd, h2d_alb, h2d_btmstr, h2d_brnflx, h2d_brnpd,  &
                              h2d_dfl, h2d_eva, h2d_fice, h2d_fmltfz, h2d_hice, h2d_hmat,  &
                              h2d_hmltfz, h2d_hsnw, h2d_iage, h2d_idkedt, h2d_lamult,  &
-                             h2d_lasl, h2d_lip, h2d_maxmld, h2d_mld, h2d_mlts,  &
-                             h2d_mltsmn, h2d_mltsmx, h2d_mltssq, h2d_mtkeus, h2d_mtkeni,  &
+                             h2d_lasl, h2d_lip, h2d_maxbld, h2d_bld, h2d_mldl82,  &
+                             h2d_mldl82mn, h2d_mldl82mx, h2d_mldl82sq, h2d_mldb04,  &
+                             h2d_mldb04mn, h2d_mldb04mx, h2d_mldb04sq, h2d_mtkeus, h2d_mtkeni,  &
                              h2d_mtkebf, h2d_mtkers, h2d_mtkepe, h2d_mtkeke, h2d_mty,  &
                              h2d_nsf, h2d_pbot, h2d_psrf, h2d_rfiflx, h2d_rnfflx,  &
                              h2d_salflx, h2d_salrlx, h2d_sbot, h2d_sealv, h2d_slvsq,  &
@@ -136,7 +138,7 @@ contains
          mdv2hi,mdv2lo,mdv4hi,mdv4lo,mdc2hi,mdc2lo, &
          vsc2hi,vsc2lo,vsc4hi,vsc4lo,cbar,cb,cwbdts,cwbdls, &
          mommth,pgfmth,bmcmth,advmth,cppm_compatibility,cppm_limiting, &
-         mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
+         mldmth,mlrmth,ce,cl,tau_mlr,tau_growing_hbl,tau_decaying_hbl, &
          tau_growing_hml,tau_decaying_hml,lfmin,mstar,nstar,wpup_min, &
          mlbl_max_ratio,mlrttp,rm0,rm5,tdfile,niwgf,niwbf,niwlf, &
          swamth,jwtype,chlopt,ccfile,svfile, &
@@ -211,6 +213,7 @@ contains
       write (lp,*) 'ADVMTH ',trim(ADVMTH)
       write (lp,*) 'CPPM_COMPATIBILITY ',trim(CPPM_COMPATIBILITY)
       write (lp,*) 'CPPM_LIMITING ',trim(CPPM_LIMITING)
+      write (lp,*) 'MLDMTH ',trim(MLDMTH)
       write (lp,*) 'MLRMTH ',trim(MLRMTH)
       write (lp,*) 'CE',CE
       write (lp,*) 'CL',CL
@@ -304,6 +307,7 @@ contains
     call xcbcst(advmth)
     call xcbcst(cppm_compatibility)
     call xcbcst(cppm_limiting)
+    call xcbcst(mldmth)
     call xcbcst(mlrmth)
     call xcbcst(ce)
     call xcbcst(cl)
@@ -493,12 +497,16 @@ contains
       write (lp,*) 'H2D_LAMULT  ',H2D_LAMULT(1:nphy)
       write (lp,*) 'H2D_LASL    ',H2D_LASL(1:nphy)
       write (lp,*) 'H2D_LIP     ',H2D_LIP(1:nphy)
-      write (lp,*) 'H2D_MAXMLD  ',H2D_MAXMLD(1:nphy)
-      write (lp,*) 'H2D_MLD     ',H2D_MLD(1:nphy)
-      write (lp,*) 'H2D_MLTS    ',H2D_MLTS(1:nphy)
-      write (lp,*) 'H2D_MLTSMN  ',H2D_MLTSMN(1:nphy)
-      write (lp,*) 'H2D_MLTSMX  ',H2D_MLTSMX(1:nphy)
-      write (lp,*) 'H2D_MLTSSQ  ',H2D_MLTSSQ(1:nphy)
+      write (lp,*) 'H2D_MAXBLD  ',H2D_MAXBLD(1:nphy)
+      write (lp,*) 'H2D_BLD     ',H2D_BLD(1:nphy)
+      write (lp,*) 'H2D_MLDL82  ',H2D_MLDL82(1:nphy)
+      write (lp,*) 'H2D_MLDL82MN',H2D_MLDL82MN(1:nphy)
+      write (lp,*) 'H2D_MLDL82MX',H2D_MLDL82MX(1:nphy)
+      write (lp,*) 'H2D_MLDL82SQ',H2D_MLDL82SQ(1:nphy)
+      write (lp,*) 'H2D_MLDB04  ',H2D_MLDB04(1:nphy)
+      write (lp,*) 'H2D_MLDB04MN',H2D_MLDB04MN(1:nphy)
+      write (lp,*) 'H2D_MLDB04MX',H2D_MLDB04MX(1:nphy)
+      write (lp,*) 'H2D_MLDB04SQ',H2D_MLDB04SQ(1:nphy)
       write (lp,*) 'H2D_MTKEUS  ',H2D_MTKEUS(1:nphy)
       write (lp,*) 'H2D_MTKENI  ',H2D_MTKENI(1:nphy)
       write (lp,*) 'H2D_MTKEBF  ',H2D_MTKEBF(1:nphy)
@@ -672,12 +680,16 @@ contains
     call xcbcst(H2D_LAMULT)
     call xcbcst(H2D_LASL)
     call xcbcst(H2D_LIP)
-    call xcbcst(H2D_MAXMLD)
-    call xcbcst(H2D_MLD)
-    call xcbcst(H2D_MLTS)
-    call xcbcst(H2D_MLTSMN)
-    call xcbcst(H2D_MLTSMX)
-    call xcbcst(H2D_MLTSSQ)
+    call xcbcst(H2D_MAXBLD)
+    call xcbcst(H2D_BLD)
+    call xcbcst(H2D_MLDL82)
+    call xcbcst(H2D_MLDL82MN)
+    call xcbcst(H2D_MLDL82MX)
+    call xcbcst(H2D_MLDL82SQ)
+    call xcbcst(H2D_MLDB04)
+    call xcbcst(H2D_MLDB04MN)
+    call xcbcst(H2D_MLDB04MX)
+    call xcbcst(H2D_MLDB04SQ)
     call xcbcst(H2D_MTKEUS)
     call xcbcst(H2D_MTKENI)
     call xcbcst(H2D_MTKEBF)

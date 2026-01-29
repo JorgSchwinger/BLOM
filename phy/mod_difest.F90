@@ -43,7 +43,7 @@ module mod_difest
                                    Kvisc_m, Kdiff_t, Kdiff_s, &
                                    t_ns_nonloc, s_nb_nonloc, &
                                    mu_nonloc, mv_nonloc
-  use mod_cmnfld,            only: bfsqi, nnslpx, nnslpy, mlts
+  use mod_cmnfld,            only: bfsqi, nnslpx, nnslpy, mld
   use mod_forcing,           only: wavsrc_opt, wavsrc_param, &
                                    abswnd, lamult, lasl, &
                                    ustar, ustarb, ustar3, wstar3, &
@@ -1472,7 +1472,7 @@ contains
     do j = 1,jj
       do l = 1,isp(j)
         do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          piso(i,j) = mlts(i,j)*onem + 100.*onem
+          piso(i,j) = mld(i,j)*onem + 100.*onem
           pgrav(i,j) = piso(i,j) + dpgrav
           pdiav(i,j) = piso(i,j) + dpdiav
         end do

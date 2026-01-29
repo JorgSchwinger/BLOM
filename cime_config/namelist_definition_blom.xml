@@ -427,6 +427,16 @@
     <desc>CPPM limiting. Valid methods: 'monotonic', 'non_oscillatory'.</desc>
   </entry>
 
+  <entry id="mldmth">
+    <type>char</type>
+    <category>limits</category>
+    <group>limits</group>
+    <values>
+      <value>lev82</value>
+    </values>
+    <desc>Method for estimating mixed layer depth</desc>
+  </entry>
+
   <entry id="mlrmth">
     <type>char</type>
     <category>limits</category>
@@ -2131,7 +2141,7 @@
     <desc>maximum mixed layer depth [m]</desc>
   </entry>
 
-  <entry id="h2d_mld">
+  <entry id="h2d_bld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2141,10 +2151,10 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,0</value>
     </values>
-    <desc>mixed layer depth [m]</desc>
+    <desc>boundary layer depth [m]</desc>
   </entry>
 
-  <entry id="h2d_mlts">
+  <entry id="h2d_mldl82">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2154,10 +2164,10 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">4,4,0</value>
     </values>
-    <desc>mixed layer thickness using "sigma-t" criterion [m]</desc>
+    <desc>mixed layer thickness defined by Levitus (1982) [m]</desc>
   </entry>
 
-  <entry id="h2d_mltsmn">
+  <entry id="h2d_mldl82mn">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2167,10 +2177,10 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,0</value>
     </values>
-    <desc>minimum mixed layer thickness using "sigma-t" criterion [m]</desc>
+    <desc>minimum mixed layer thickness defined by Levitus (1982) [m]</desc>
   </entry>
 
-  <entry id="h2d_mltsmx">
+  <entry id="h2d_mldl82mx">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2180,10 +2190,10 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,0</value>
     </values>
-    <desc>maximum mixed layer thickness using "sigma-t" criterion [m]</desc>
+    <desc>maximum mixed layer thickness defined by Levitus (1982) [m]</desc>
   </entry>
 
-  <entry id="h2d_mltssq">
+  <entry id="h2d_mldl82sq">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2193,7 +2203,59 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,0,0</value>
     </values>
-    <desc>mixed layer thickness squared using "sigma-t" criterion [m2]</desc>
+    <desc>mixed layer thickness squared defined by Levitus (1982) [m2]</desc>
+  </entry>
+
+  <entry id="h2d_mldb04">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">4,4,0</value>
+    </values>
+    <desc>mixed layer thickness defined by de Boyer Montégut et al. (2004) [m]</desc>
+  </entry>
+
+  <entry id="h2d_mldb04mn">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
+    </values>
+    <desc>minimum mixed layer thickness defined by de Boyer Montégut et al. (2004) [m]</desc>
+  </entry>
+
+  <entry id="h2d_mldb04mx">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
+    </values>
+    <desc>maximum mixed layer thickness defined by de Boyer Montégut et al. (2004) [m]</desc>
+  </entry>
+
+  <entry id="h2d_mldb04sq">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,0,0</value>
+    </values>
+    <desc>mixed layer thickness squared defined by de Boyer Montégut et al. (2004) [m2]</desc>
   </entry>
 
   <entry id="h2d_mtkeus">
