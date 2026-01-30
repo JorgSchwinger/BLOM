@@ -33,8 +33,7 @@ module mod_cmnfld_routines
    use mod_state,     only: dp, temp, saln, p, phi, kfpla
    use mod_dia,       only: nphy, ACC_BFSQ, ACC_MLDL82, ACC_MLDL82MN, &
                             ACC_MLDL82MX, ACC_MLDL82SQ, ACC_MLDB04, &
-                            ACC_MLDB04MN, ACC_MLDB04MX, ACC_MLDB04SQ, &
-                            ACC_T20D, ACC_DZ, ACC_DZLVL
+                            ACC_MLDB04MN, ACC_MLDB04MX, ACC_MLDB04SQ
    use mod_cmnfld,    only: sls0, slsmfq, slsels, bfsqmn, dbcl82, drcb04, &
                             zrefb04, mldmth, bfsqi, bfsqf, z, bfsql, &
                             nslpx, nslpy, nnslpx, nnslpy, dz, &

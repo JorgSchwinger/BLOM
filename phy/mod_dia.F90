@@ -207,9 +207,10 @@ module mod_dia
        H2D_SALFLX  ,H2D_SALRLX  ,H2D_SBOT    ,H2D_SEALV   ,H2D_SLVSQ   , &
        H2D_SFL     ,H2D_SOP     ,H2D_SIGMX   ,H2D_SSS     ,H2D_SSSSQ   , &
        H2D_SST     ,H2D_SSTSQ   ,H2D_SURFLX  ,H2D_SURRLX  ,H2D_SWA     , &
-       H2D_T20D    ,H2D_TAUX    ,H2D_TAUY    ,H2D_TBOT    ,H2D_TICE    , &
-       H2D_TSRF    ,H2D_UB      ,H2D_UICE    ,H2D_USTAR   ,H2D_USTAR3  , &
-       H2D_USTOKES ,H2D_VB      ,H2D_VICE    ,H2D_VSTOKES ,H2D_ZTX     , &
+       H2D_T20D    ,H2D_T17D    ,H2D_TAUX    ,H2D_TAUY    ,H2D_TBOT    , &
+       H2D_TICE    ,H2D_TSRF    ,H2D_UB      ,H2D_UICE    ,H2D_USTAR   , &
+       H2D_USTAR3  ,H2D_USTOKES ,H2D_VB      ,H2D_VICE    ,H2D_VSTOKES , &
+       H2D_ZTX     , &
        LYR_BFSQ    ,LYR_DIFDIA  ,LYR_DIFVMO  ,LYR_DIFVHO  ,LYR_DIFVSO  , &
        LYR_DIFINT  ,LYR_DIFISO  ,LYR_DP      ,LYR_DPU     ,LYR_DPV     , &
        LYR_DZ      ,LYR_SALN    ,LYR_TEMP    ,LYR_TRC     ,LYR_UFLX    , &
@@ -240,24 +241,24 @@ module mod_dia
        ACC_HMLTFZ  ,ACC_HSNW    ,ACC_IAGE    ,ACC_IDKEDT  ,ACC_LAMULT  , &
        ACC_LASL    ,ACC_LIP     ,ACC_MAXBLD  ,ACC_BLD     ,ACC_MLDL82  , &
        ACC_MLDL82MN,ACC_MLDL82MX,ACC_MLDL82SQ,ACC_MLDB04  ,ACC_MLDB04MN, &
-       ACC_MLDB04MX,ACC_MLDB04SQ,ACC_MTKEUS  ,ACC_MTKENI  ,ACC_MTKEBF , &
-       ACC_MTKERS  ,ACC_MTKEPE  ,ACC_MTKEKE  ,ACC_MTY     ,ACC_NSF    , &
-       ACC_PBOT    ,ACC_PSRF    ,ACC_RFIFLX  ,ACC_RNFFLX  ,ACC_SALFLX , &
-       ACC_SALRLX  ,ACC_SBOT    ,ACC_SEALV   ,ACC_SLVSQ   ,ACC_SFL    , &
-       ACC_SOP     ,ACC_SIGMX   ,ACC_SSS     ,ACC_SSSSQ   ,ACC_SST    , &
-       ACC_SSTSQ   ,ACC_SURFLX  ,ACC_SURRLX  ,ACC_SWA     ,ACC_T20D   , &
-       ACC_TAUX    ,ACC_TAUY    ,ACC_TBOT    ,ACC_TICE    ,ACC_TSRF   , &
-       ACC_UB      ,ACC_UBFLXS  ,ACC_UICE    ,ACC_USTAR   ,ACC_USTAR3 , &
-       ACC_USTOKES ,ACC_VB      ,ACC_VBFLXS  ,ACC_VICE    ,ACC_VSTOKES, &
-       ACC_ZTX     ,ACC_IVOLU   ,ACC_IVOLV   ,ACC_UTILH2D , &
-       ACC_BFSQ    ,ACC_DIFDIA  ,ACC_DIFVMO  ,ACC_DIFVHO  ,ACC_DIFVSO , &
-       ACC_DIFINT  ,ACC_DIFISO  ,ACC_DP      ,ACC_DPU     ,ACC_DPV    , &
-       ACC_DZ      ,ACC_SALN    ,ACC_TEMP    ,ACC_UFLX    ,ACC_UTFLX  , &
-       ACC_USFLX   ,ACC_UMFLTD  ,ACC_UMFLSM  ,ACC_UTFLTD  ,ACC_UTFLSM , &
-       ACC_UTFLLD  ,ACC_USFLTD  ,ACC_USFLSM  ,ACC_USFLLD  ,ACC_UVEL   , &
-       ACC_VFLX    ,ACC_VTFLX   ,ACC_VSFLX   ,ACC_VMFLTD  ,ACC_VMFLSM , &
-       ACC_VTFLTD  ,ACC_VTFLSM  ,ACC_VTFLLD  ,ACC_VSFLTD  ,ACC_VSFLSM , &
-       ACC_VSFLLD  ,ACC_VVEL    ,ACC_WFLX    ,ACC_WFLX2   ,ACC_AVDSG  , &
+       ACC_MLDB04MX,ACC_MLDB04SQ,ACC_MTKEUS  ,ACC_MTKENI  ,ACC_MTKEBF  , &
+       ACC_MTKERS  ,ACC_MTKEPE  ,ACC_MTKEKE  ,ACC_MTY     ,ACC_NSF     , &
+       ACC_PBOT    ,ACC_PSRF    ,ACC_RFIFLX  ,ACC_RNFFLX  ,ACC_SALFLX  , &
+       ACC_SALRLX  ,ACC_SBOT    ,ACC_SEALV   ,ACC_SLVSQ   ,ACC_SFL     , &
+       ACC_SOP     ,ACC_SIGMX   ,ACC_SSS     ,ACC_SSSSQ   ,ACC_SST     , &
+       ACC_SSTSQ   ,ACC_SURFLX  ,ACC_SURRLX  ,ACC_SWA     ,ACC_T20D    , &
+       ACC_T17D    ,ACC_TAUX    ,ACC_TAUY    ,ACC_TBOT    ,ACC_TICE    , &
+       ACC_TSRF    ,ACC_UB      ,ACC_UBFLXS  ,ACC_UICE    ,ACC_USTAR   , &
+       ACC_USTAR3  ,ACC_USTOKES ,ACC_VB      ,ACC_VBFLXS  ,ACC_VICE    , &
+       ACC_VSTOKES ,ACC_ZTX     ,ACC_IVOLU   ,ACC_IVOLV   ,ACC_UTILH2D , &
+       ACC_BFSQ    ,ACC_DIFDIA  ,ACC_DIFVMO  ,ACC_DIFVHO  ,ACC_DIFVSO  , &
+       ACC_DIFINT  ,ACC_DIFISO  ,ACC_DP      ,ACC_DPU     ,ACC_DPV     , &
+       ACC_DZ      ,ACC_SALN    ,ACC_TEMP    ,ACC_UFLX    ,ACC_UTFLX   , &
+       ACC_USFLX   ,ACC_UMFLTD  ,ACC_UMFLSM  ,ACC_UTFLTD  ,ACC_UTFLSM  , &
+       ACC_UTFLLD  ,ACC_USFLTD  ,ACC_USFLSM  ,ACC_USFLLD  ,ACC_UVEL    , &
+       ACC_VFLX    ,ACC_VTFLX   ,ACC_VSFLX   ,ACC_VMFLTD  ,ACC_VMFLSM  , &
+       ACC_VTFLTD  ,ACC_VTFLSM  ,ACC_VTFLLD  ,ACC_VSFLTD  ,ACC_VSFLSM  , &
+       ACC_VSFLLD  ,ACC_VVEL    ,ACC_WFLX    ,ACC_WFLX2   ,ACC_AVDSG   , &
        ACC_DPVOR   ,ACC_TKE     ,ACC_GLS_PSI,ACC_UTILLYR, &
        ACC_BFSQLVL   ,ACC_DIFDIALVL ,ACC_DIFVMOLVL ,ACC_DIFVHOLVL , &
        ACC_DIFVSOLVL ,ACC_DIFINTLVL ,ACC_DIFISOLVL ,ACC_DZLVL     , &
@@ -298,9 +299,10 @@ module mod_dia
        H2D_SALFLX  ,H2D_SALRLX  ,H2D_SBOT    ,H2D_SEALV   ,H2D_SLVSQ   , &
        H2D_SFL     ,H2D_SOP     ,H2D_SIGMX   ,H2D_SSS     ,H2D_SSSSQ   , &
        H2D_SST     ,H2D_SSTSQ   ,H2D_SURFLX  ,H2D_SURRLX  ,H2D_SWA     , &
-       H2D_T20D    ,H2D_TAUX    ,H2D_TAUY    ,H2D_TBOT    ,H2D_TICE    , &
-       H2D_TSRF    ,H2D_UB      ,H2D_UICE    ,H2D_USTAR   ,H2D_USTAR3  , &
-       H2D_USTOKES ,H2D_VB      ,H2D_VICE    ,H2D_VSTOKES ,H2D_ZTX     , &
+       H2D_T20D    ,H2D_T17D    ,H2D_TAUX    ,H2D_TAUY    ,H2D_TBOT    , &
+       H2D_TICE    ,H2D_TSRF    ,H2D_UB      ,H2D_UICE    ,H2D_USTAR   , &
+       H2D_USTAR3  ,H2D_USTOKES ,H2D_VB      ,H2D_VICE    ,H2D_VSTOKES , &
+       H2D_ZTX     , &
        LYR_BFSQ    ,LYR_DIFDIA  ,LYR_DIFVMO  ,LYR_DIFVHO  ,LYR_DIFVSO  , &
        LYR_DIFINT  ,LYR_DIFISO  ,LYR_DP      ,LYR_DPU     ,LYR_DPV     , &
        LYR_DZ      ,LYR_SALN    ,LYR_TEMP    ,LYR_TRC     ,LYR_UFLX    , &
@@ -558,6 +560,7 @@ contains
       ACC_SSTSQ(n)    = H2D_SSTSQ(n)
       ACC_SWA(n)      = H2D_SWA(n)
       ACC_T20D(n)     = H2D_T20D(n)
+      ACC_T17D(n)     = H2D_T17D(n)
       ACC_TAUX(n)     = H2D_TAUX(n)
       ACC_TAUY(n)     = H2D_TAUY(n)
       ACC_TBOT(n)     = H2D_TBOT(n)
@@ -806,6 +809,8 @@ contains
       ACC_SWA(n) = nphyh2d*min(1,ACC_SWA(n))
       if (ACC_T20D(n) /= 0) nphyh2d = nphyh2d+1
       ACC_T20D(n) = nphyh2d*min(1,ACC_T20D(n))
+      if (ACC_T17D(n) /= 0) nphyh2d = nphyh2d+1
+      ACC_T17D(n) = nphyh2d*min(1,ACC_T17D(n))
       if (ACC_TAUX(n) /= 0) nphyh2d = nphyh2d+1
       ACC_TAUX(n) = nphyh2d*min(1,ACC_TAUX(n))
       if (ACC_TAUY(n) /= 0) nphyh2d = nphyh2d+1
@@ -1093,7 +1098,7 @@ contains
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: uvel,vvel, &
          avdsg_p,dpvor_p,pv_p,dummy
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-         dpml,sbot,tbot,dps,t20d
+         dpml,sbot,tbot,dps,t20d,t17d
     real :: dsig,q,zup,zlo,tup,tlo
 
     ! Increase counter
@@ -1300,6 +1305,42 @@ contains
       !$omp end parallel do
     end if
 
+    if (sum(ACC_T17D(1:nphy)) /= 0) then
+      !$omp parallel do private(l,i,k,km,kup,zup,zlo,tup,tlo)
+      do j = 1,jj
+        do l = 1,isp(j)
+          do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+            k = 1
+            km = k+mm
+            do
+              if (dp(i,j,km) > onecm) then
+                if (temp(i,j,km) > 17.) then
+                  kup = k
+                else
+                  exit
+                end if
+              end if
+              k = k+1
+              km = k+mm
+              if (k > kk) exit
+            end do
+            if     (k == 1) then
+              t17d(i,j) = 0.
+            else if (k > kk) then
+              t17d(i,j) = z(i,j,kk+1)
+            else
+              zup = z(i,j,kup)+.5*dz(i,j,kup)
+              zlo = z(i,j,k  )+.5*dz(i,j,k  )
+              tup = temp(i,j,kup+mm)
+              tlo = min(temp(i,j,km),tup-epsilp)
+              t17d(i,j) = (zup*(tlo-17.)+zlo*(17.-tup))/(tlo-tup)
+            end if
+          end do
+        end do
+      end do
+      !$omp end parallel do
+    end if
+
     !---------------------------------------------------------------
     ! accumulate 2d diagnostic variables
     !---------------------------------------------------------------
@@ -1471,6 +1512,9 @@ contains
 
     ! 20C isoterm depth [m]
     call acch2d(ACC_T20D,t20d,dummy,0,'p')
+
+    ! 17C isoterm depth [m]
+    call acch2d(ACC_T17D,t17d,dummy,0,'p')
 
     ! heat flux given by the ocean [W/m^2]
     call acch2d(ACC_SURFLX,surflx,dummy,0,'p')
@@ -2857,6 +2901,9 @@ contains
 
     call wrth2d(ACC_T20D(iogrp),H2D_T20D(iogrp),rnacc,0., &
          cmpflg,ip,'p','t20d','20C isoterm depth',' ','m')
+
+    call wrth2d(ACC_T17D(iogrp),H2D_T17D(iogrp),rnacc,0., &
+         cmpflg,ip,'p','t17d','17C isoterm depth',' ','m')
 
     call wrth2d(ACC_BRNPD(iogrp),H2D_BRNPD(iogrp),rnacc/onem,0., &
          cmpflg,ip,'p','brnpd','Brine plume depth',' ','m')
@@ -5604,6 +5651,7 @@ contains
     call inih2d(ACC_MLDB04MX(iogrp),'p',-spval)
     call inih2d(ACC_MLDB04SQ(iogrp),'p',0.)
     call inih2d(ACC_T20D(iogrp),'p',0.)
+    call inih2d(ACC_T17D(iogrp),'p',0.)
     call inih2d(ACC_ALB(iogrp),'p',0.)
     call inih2d(ACC_SWA(iogrp),'p',0.)
     call inih2d(ACC_NSF(iogrp),'p',0.)
@@ -6691,6 +6739,9 @@ contains
 
     call ncdefvar3d(H2D_T20D(iogrp),cmpflg,'p','t20d', &
          '20C isoterm depth',' ','m',0)
+
+    call ncdefvar3d(H2D_T17D(iogrp),cmpflg,'p','t17d', &
+         '17C isoterm depth',' ','m',0)
 
     call ncdefvar3d(H2D_BRNPD(iogrp),cmpflg,'p','brnpd', &
          'Brine plume depth',' ','m',0)

@@ -71,7 +71,8 @@ module mod_restart
                                  acc_salflx, acc_salrlx, acc_sbot, acc_sealv, &
                                  acc_slvsq, acc_sfl, acc_sop, acc_sigmx, &
                                  acc_sss, acc_ssssq, acc_sst, acc_sstsq, &
-                                 acc_surflx, acc_surrlx, acc_swa, acc_t20d, &
+                                 acc_surflx, acc_surrlx, acc_swa, &
+                                 acc_t20d, acc_t17d, &
                                  acc_taux, acc_tauy, acc_tbot, acc_tice, &
                                  acc_tsrf, acc_ub, acc_ubflxs, acc_uice, &
                                  acc_ustar, acc_ustar3, acc_ustokes,acc_vb, &
@@ -695,6 +696,9 @@ contains
             if (ACC_T20D(n) /= 0) &
                call defwrtfld('t20d_phy'//c2, trim(c5p)//' time', &
                               phyh2d(1-nbdy,1-nbdy,ACC_T20D(n)), ip, defmode)
+            if (ACC_T17D(n) /= 0) &
+               call defwrtfld('t17d_phy'//c2, trim(c5p)//' time', &
+                              phyh2d(1-nbdy,1-nbdy,ACC_T17D(n)), ip, defmode)
             if (ACC_ALB(n) /= 0) &
                call defwrtfld('alb_phy'//c2, trim(c5p)//' time', &
                               phyh2d(1-nbdy,1-nbdy,ACC_ALB(n)), ip, defmode)
@@ -2085,6 +2089,9 @@ contains
                if (ACC_T20D(n) /= 0) &
                   call readfld('t20d_phy'//c2, l_unitconv, &
                                phyh2d(1-nbdy,1-nbdy,ACC_T20D(n)), ip)
+               if (ACC_T17D(n) /= 0) &
+                  call readfld('t17d_phy'//c2, l_unitconv, &
+                               phyh2d(1-nbdy,1-nbdy,ACC_T17D(n)), ip)
                if (ACC_ALB(n) /= 0) &
                   call readfld('alb_phy'//c2, no_unitconv, &
                                phyh2d(1-nbdy,1-nbdy,ACC_ALB(n)), ip)

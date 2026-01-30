@@ -93,7 +93,7 @@ module mod_rdlim
                              h2d_salflx, h2d_salrlx, h2d_sbot, h2d_sealv, h2d_slvsq,  &
                              h2d_sfl, h2d_sop, h2d_sigmx, h2d_sss, h2d_ssssq,  &
                              h2d_sst, h2d_sstsq, h2d_surflx, h2d_surrlx, h2d_swa,  &
-                             h2d_t20d, h2d_taux, h2d_tauy, h2d_tbot, h2d_tice,  &
+                             h2d_t20d, h2d_t17d, h2d_taux, h2d_tauy, h2d_tbot, h2d_tice,  &
                              h2d_tsrf, h2d_ub, h2d_uice, h2d_ustar, h2d_ustar3,  &
                              h2d_ustokes,h2d_vb, h2d_vice, h2d_vstokes,h2d_ztx, &
                              glb_aveperio, glb_filefreq, glb_compflag, glb_ncformat, &
@@ -535,6 +535,7 @@ contains
       write (lp,*) 'H2D_SURRLX  ',H2D_SURRLX(1:nphy)
       write (lp,*) 'H2D_SWA     ',H2D_SWA(1:nphy)
       write (lp,*) 'H2D_T20D    ',H2D_T20D(1:nphy)
+      write (lp,*) 'H2D_T17D    ',H2D_T17D(1:nphy)
       write (lp,*) 'H2D_TAUX    ',H2D_TAUX(1:nphy)
       write (lp,*) 'H2D_TAUY    ',H2D_TAUY(1:nphy)
       write (lp,*) 'H2D_TBOT    ',H2D_TBOT(1:nphy)
@@ -718,6 +719,7 @@ contains
     call xcbcst(H2D_SURRLX)
     call xcbcst(H2D_SWA)
     call xcbcst(H2D_T20D)
+    call xcbcst(H2D_T17D)
     call xcbcst(H2D_TAUX)
     call xcbcst(H2D_TAUY)
     call xcbcst(H2D_TBOT)

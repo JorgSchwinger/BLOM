@@ -2622,6 +2622,19 @@
     <desc>20C isoterm depth [m]</desc>
   </entry>
 
+  <entry id="h2d_t17d">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>4,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,0</value>
+    </values>
+    <desc>17C isoterm depth [m]</desc>
+  </entry>
+
   <entry id="h2d_taux">
     <type>integer(3)</type>
     <category>diaphy</category>

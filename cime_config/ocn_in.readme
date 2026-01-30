@@ -320,6 +320,7 @@
 !   SURRLX   - restoring heat flux received by ocean [W m-2]
 !   SWA      - short-wave heat flux [W m-2]
 !   T20D     - 20C isoterm depth [m]
+!   T17D     - 17C isoterm depth [m]
 !   TAUX     - momentum flux received by ocean x-component [N m-2]
 !   TAUY     - momentum flux received by ocean y-component [N m-2]
 !   TBOT     - bottom temperature [degC]
