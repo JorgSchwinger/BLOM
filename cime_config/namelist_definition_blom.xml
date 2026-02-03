@@ -4191,7 +4191,33 @@
     <desc>add desc</desc>
   </entry>
 
-  <entry id="msc_voltr">
+  <entry id="msc_masstr">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="msc_heattr">
+    <type>integer(3)</type>
+    <category>diaphy</category>
+    <group>diaphy</group>
+    <values>
+      <value>0,4,0</value>
+      <value is_test="yes">4,4,0</value>
+      <value is_test="yes" empty_hist="yes">0,0,0</value>
+      <value blom_output_size="spinup">0,4,4</value>
+    </values>
+    <desc>add desc</desc>
+  </entry>
+
+  <entry id="msc_salttr">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>

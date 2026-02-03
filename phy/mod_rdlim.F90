@@ -79,9 +79,9 @@ module mod_rdlim
                              lvl_idlage, lyr_difdia, lvl_difdia, &
                              msc_mmflxl, msc_mmflxd, msc_mmftdl, msc_mmfsml, msc_mmftdd,  &
                              msc_mmfsmd, msc_mhflx, msc_mhftd, msc_mhfsm, msc_mhfld,  &
-                             msc_msflx, msc_msftd, msc_msfsm, msc_msfld, msc_voltr,  &
-                             msc_massgs, msc_volgs, msc_salnga, msc_tempga, msc_sssga,  &
-                             msc_sstga,  &
+                             msc_msflx, msc_msftd, msc_msfsm, msc_msfld, msc_masstr,  &
+                             msc_heattr, msc_salttr, msc_massgs, msc_volgs, msc_salnga, &
+                             msc_tempga, msc_sssga, msc_sstga,  &
                              h2d_abswnd, h2d_alb, h2d_btmstr, h2d_brnflx, h2d_brnpd,  &
                              h2d_dfl, h2d_eva, h2d_fice, h2d_fmltfz, h2d_hice, h2d_hmat,  &
                              h2d_hmltfz, h2d_hsnw, h2d_iage, h2d_idkedt, h2d_lamult,  &
@@ -650,7 +650,9 @@ contains
       write (lp,*) 'MSC_MSFTD   ',MSC_MSFTD(1:nphy)
       write (lp,*) 'MSC_MSFSM   ',MSC_MSFSM(1:nphy)
       write (lp,*) 'MSC_MSFLD   ',MSC_MSFLD(1:nphy)
-      write (lp,*) 'MSC_VOLTR   ',MSC_VOLTR(1:nphy)
+      write (lp,*) 'MSC_MASSTR  ',MSC_MASSTR(1:nphy)
+      write (lp,*) 'MSC_HEATTR  ',MSC_HEATTR(1:nphy)
+      write (lp,*) 'MSC_SALTTR  ',MSC_SALTTR(1:nphy)
       write (lp,*) 'MSC_MASSGS  ',MSC_MASSGS(1:nphy)
       write (lp,*) 'MSC_VOLGS   ',MSC_VOLGS(1:nphy)
       write (lp,*) 'MSC_SALNGA  ',MSC_SALNGA(1:nphy)
@@ -833,7 +835,9 @@ contains
     call xcbcst(MSC_MSFTD)
     call xcbcst(MSC_MSFSM)
     call xcbcst(MSC_MSFLD)
-    call xcbcst(MSC_VOLTR)
+    call xcbcst(MSC_MASSTR)
+    call xcbcst(MSC_HEATTR)
+    call xcbcst(MSC_SALTTR)
     call xcbcst(MSC_MASSGS)
     call xcbcst(MSC_VOLGS)
     call xcbcst(MSC_SALNGA)
@@ -853,10 +857,10 @@ contains
     ! read merdia namelist if needed
 
     if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy) &
-         +MSC_MMFSML(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy) &
-         +MSC_MHFLX (1:nphy)+MSC_MHFTD (1:nphy)+MSC_MHFSM (1:nphy) &
-         +MSC_MHFLD (1:nphy)+MSC_MSFLX (1:nphy)+MSC_MSFTD (1:nphy) &
-         +msc_msfsm (1:nphy)+msc_msfld (1:nphy)) /= 0) then
+           +MSC_MMFSML(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy) &
+           +MSC_MHFLX (1:nphy)+MSC_MHFTD (1:nphy)+MSC_MHFSM (1:nphy) &
+           +MSC_MHFLD (1:nphy)+MSC_MSFLX (1:nphy)+MSC_MSFTD (1:nphy) &
+           +msc_msfsm (1:nphy)+msc_msfld (1:nphy)) /= 0) then
 
       if (mnproc == 1) then
 
@@ -910,7 +914,7 @@ contains
 
     ! read secdia namelist if needed
 
-    if (sum(msc_voltr(1:nphy)) /= 0) then
+    if (sum(MSC_MASSTR(1:nphy)+MSC_HEATTR(1:nphy)+MSC_SALTTR(1:nphy)) /= 0) then
 
       if (mnproc == 1) then
 

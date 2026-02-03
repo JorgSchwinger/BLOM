@@ -185,7 +185,7 @@ module mod_dia
   integer :: sec_num
   integer, parameter :: max_sec = 400
   character(len = slenmax) :: sec_name(max_sec)
-  real, dimension(max_sec) :: voltr
+  real, dimension(max_sec) :: masstr, heattr, salttr
 
   ! Global sums and averages
   real, dimension(1) :: massgs,volgs,salnga,tempga,sssga,sstga
@@ -231,9 +231,9 @@ module mod_dia
        LVL_IDLAGE  , &
        MSC_MMFLXL  ,MSC_MMFTDL  ,MSC_MMFSML  ,MSC_MMFLXD  ,MSC_MMFTDD  , &
        MSC_MMFSMD  ,MSC_MHFLX   ,MSC_MHFTD   ,MSC_MHFSM   ,MSC_MHFLD   , &
-       MSC_MSFLX   ,MSC_MSFTD   ,MSC_MSFSM   ,MSC_MSFLD   ,MSC_VOLTR   , &
-       MSC_MASSGS  ,MSC_VOLGS   ,MSC_SALNGA  ,MSC_TEMPGA  ,MSC_SSSGA   , &
-       MSC_SSTGA
+       MSC_MSFLX   ,MSC_MSFTD   ,MSC_MSFSM   ,MSC_MSFLD   ,MSC_MASSTR  , &
+       MSC_HEATTR  ,MSC_SALTTR  ,MSC_MASSGS  ,MSC_VOLGS   ,MSC_SALNGA  , &
+       MSC_TEMPGA  ,MSC_SSSGA   ,MSC_SSTGA
 
   integer, dimension(nphymax), public :: &
        ACC_ABSWND  ,ACC_ALB     ,ACC_BRNFLX  ,ACC_BRNPD   ,ACC_DFL     , &
@@ -318,11 +318,11 @@ module mod_dia
        LVL_VTFLLD  ,LVL_VSFLTD  ,LVL_VSFLSM  ,LVL_VSFLLD  ,LVL_VVEL    , &
        LVL_WFLX    ,LVL_WFLX2   ,LVL_PV      ,LVL_TKE     ,LVL_GLS_PSI , &
        LVL_IDLAGE  , &
-       MSC_MMFLXL ,MSC_MMFTDL ,MSC_MMFSML ,MSC_MMFLXD ,MSC_MMFTDD , &
-       MSC_MMFSMD ,MSC_MHFLX  ,MSC_MHFTD  ,MSC_MHFSM  ,MSC_MHFLD  , &
-       MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFSM  ,MSC_MSFLD  ,MSC_VOLTR  , &
-       MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,MSC_SSSGA  , &
-       MSC_SSTGA  , &
+       MSC_MMFLXL  ,MSC_MMFTDL  ,MSC_MMFSML  ,MSC_MMFLXD  ,MSC_MMFTDD  , &
+       MSC_MMFSMD  ,MSC_MHFLX   ,MSC_MHFTD   ,MSC_MHFSM   ,MSC_MHFLD   , &
+       MSC_MSFLX   ,MSC_MSFTD   ,MSC_MSFSM   ,MSC_MSFLD   ,MSC_MASSTR  , &
+       MSC_HEATTR  ,MSC_SALTTR  ,MSC_MASSGS  ,MSC_VOLGS   ,MSC_SALNGA  , &
+       MSC_TEMPGA  ,MSC_SSSGA   ,MSC_SSTGA   , &
        GLB_AVEPERIO,GLB_FILEFREQ,GLB_COMPFLAG,GLB_NCFORMAT, &
        GLB_FNAMETAG
 
@@ -458,7 +458,7 @@ contains
              +MSC_MMFLXD(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy) &
              +MSC_MHFLX (1:nphy)+MSC_MHFTD (1:nphy)+MSC_MHFSM (1:nphy) &
              +MSC_MHFLD (1:nphy)+MSC_MSFLX (1:nphy)+MSC_MSFTD (1:nphy) &
-             +msc_msfsm (1:nphy)+msc_msfld (1:nphy)) /= 0) then
+             +MSC_MSFSM (1:nphy)+MSC_MSFLD (1:nphy)) /= 0) then
         inquire(file=mer_orfile,exist = fexist)
         if (.not.fexist) then
           write (lp,'(3a)') ' Could not find file ', &
@@ -474,7 +474,8 @@ contains
           stop '(diaini)'
         end if
       end if
-      if (sum(msc_voltr(1:nphy)) /= 0) then
+      if (sum(MSC_MASSTR(1:nphy)+MSC_HEATTR(1:nphy)+MSC_SALTTR(1:nphy)) &
+          /= 0) then
         inquire(file=sec_sifile,exist = fexist)
         if (.not.fexist) then
           write (lp,'(3a)') ' Could not find file ', &
@@ -607,13 +608,13 @@ contains
       ACC_TEMPLVL(n)  = LVL_TEMP(n)
       ACC_UFLX(n)     = LYR_UFLX(n)   + MSC_MMFLXL(n) + LYR_WFLX(n) &
                       + LYR_WFLX2(n)
-      ACC_UFLXLVL(n)  = LVL_UFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) &
+      ACC_UFLXLVL(n)  = LVL_UFLX(n)   + MSC_MMFLXD(n) + MSC_MASSTR(n) &
                       + LVL_WFLX(n)   + LVL_WFLX2(n)
       ACC_UFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
       ACC_UTFLX(n)    = LYR_UTFLX(n)  + MSC_MHFLX(n)
-      ACC_UTFLXLVL(n) = LVL_UTFLX(n)
+      ACC_UTFLXLVL(n) = LVL_UTFLX(n)  + MSC_HEATTR(n)
       ACC_USFLX(n)    = LYR_USFLX(n)  + MSC_MSFLX(n)
-      ACC_USFLXLVL(n) = LVL_USFLX(n)
+      ACC_USFLXLVL(n) = LVL_USFLX(n)  + MSC_SALTTR(n)
       ACC_UMFLTD(n)   = LYR_UMFLTD(n) + MSC_MMFTDL(n)
       ACC_UMFLSM(n)   = LYR_UMFLSM(n) + MSC_MMFSML(n)
       ACC_UMFLTDLVL(n)= LVL_UMFLTD(n) + MSC_MMFTDD(n)
@@ -634,13 +635,13 @@ contains
       ACC_UVELLVL(n)  = LVL_UVEL(n)
       ACC_VFLX(n)     = LYR_VFLX(n)   + MSC_MMFLXL(n) + LYR_WFLX(n) &
                       + LYR_WFLX2(n)
-      ACC_VFLXLVL(n)  = LVL_VFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) &
+      ACC_VFLXLVL(n)  = LVL_VFLX(n)   + MSC_MMFLXD(n) + MSC_MASSTR(n) &
                       + LVL_WFLX(n)   + LVL_WFLX2(n)
       ACC_VFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
       ACC_VTFLX(n)    = LYR_VTFLX(n)  + MSC_MHFLX(n)
-      ACC_VTFLXLVL(n) = LVL_VTFLX(n)
+      ACC_VTFLXLVL(n) = LVL_VTFLX(n)  + MSC_HEATTR(n)
       ACC_VSFLX(n)    = LYR_VSFLX(n)  + MSC_MSFLX(n)
-      ACC_VSFLXLVL(n) = LVL_VSFLX(n)
+      ACC_VSFLXLVL(n) = LVL_VSFLX(n)  + MSC_SALTTR(n)
       ACC_VMFLTD(n)   = LYR_VMFLTD(n) + MSC_MMFTDL(n)
       ACC_VMFLSM(n)   = LYR_VMFLSM(n) + MSC_MMFSML(n)
       ACC_VMFLTDLVL(n)= LVL_VMFLTD(n) + MSC_MMFTDD(n)
@@ -2154,7 +2155,8 @@ contains
        +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
        +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
        +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp) /= 0) call diamer(iogrp)
-    if (MSC_VOLTR(iogrp) /= 0) call diasec(iogrp)
+    if (MSC_MASSTR(iogrp)+MSC_HEATTR(iogrp)+MSC_SALTTR(iogrp) /= 0) &
+      call diasec(iogrp)
 
     ! compute barotropic mass streamfunction
     if (h2d_btmstr(iogrp) /= 0) then
@@ -2208,7 +2210,7 @@ contains
     end if
 
     ! compute global sums and averages
-    if (MSC_MASSGS(iogrp)+MSC_SALNGA(iogrp) +msc_tempga(iogrp) /= 0) then
+    if (MSC_MASSGS(iogrp)+MSC_SALNGA(iogrp)+MSC_TEMPGA(iogrp) /= 0) then
 
       !$omp parallel do private(l,i)
       do j = 1,jj
@@ -2242,7 +2244,7 @@ contains
       call xcsum(massgs(1),util1,ips)
     end if
 
-    if (msc_volgs(iogrp) /= 0) then
+    if (MSC_VOLGS(iogrp) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isp(j)
@@ -2275,7 +2277,7 @@ contains
       call xcsum(volgs(1),util1,ips)
       volgs(1) = rnacc*volgs(1)
     end if
-    if (msc_salnga(iogrp) /= 0) then
+    if (MSC_SALNGA(iogrp) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isp(j)
@@ -2308,7 +2310,7 @@ contains
       call xcsum(salnga(1),util1,ips)
       salnga(1) = salnga(1)/massgs(1)
     end if
-    if (msc_tempga(iogrp) /= 0) then
+    if (MSC_TEMPGA(iogrp) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isp(j)
@@ -2341,10 +2343,10 @@ contains
       call xcsum(tempga(1),util1,ips)
       tempga(1) = tempga(1)/massgs(1)
     end if
-    if (msc_massgs(iogrp) /= 0) then
+    if (MSC_MASSGS(iogrp) /= 0) then
       massgs(1) = rnacc*massgs(1)/grav
     end if
-    if (msc_sssga(iogrp) /= 0) then
+    if (MSC_SSSGA(iogrp) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isp(j)
@@ -2357,7 +2359,7 @@ contains
       call xcsum(sssga(1),util1,ips)
       sssga(1) = rnacc*sssga(1)/area
     end if
-    if (msc_sstga(iogrp) /= 0) then
+    if (MSC_SSTGA(iogrp) /= 0) then
       !$omp parallel do private(l,i)
       do j = 1,jj
         do l = 1,isp(j)
@@ -2561,7 +2563,8 @@ contains
        +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
        +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
        +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
-       +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp)+MSC_VOLTR (iogrp) /= 0) then
+       +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp)+MSC_MASSTR(iogrp) &
+       +MSC_HEATTR(iogrp)+MSC_SALTTR(iogrp) /= 0) then
       call ncdims('slenmax',slenmax)
     end if
 
@@ -2582,7 +2585,7 @@ contains
       end if
     end if
 
-    if (MSC_VOLTR(iogrp) /= 0) then
+    if (MSC_MASSTR(iogrp)+MSC_HEATTR(iogrp)+MSC_SALTTR(iogrp) /= 0) then
       if ((sec_num > 0.and.sec_num <= max_sec)) then
         call ncdims('section',sec_num)
       else
@@ -2653,7 +2656,7 @@ contains
          +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
          +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
          +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
-         +msc_msfsm (iogrp)+msc_msfld (iogrp) /= 0) then
+         +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp) /= 0) then
         call ncwrt1('lat','lat',mtlat)
         call ncattr('long_name','Latitude')
         call ncattr('standard_name','latitude')
@@ -2661,7 +2664,7 @@ contains
         call ncwrtc('region','slenmax region',mer_regnam)
         call ncattr('long_name','Region name')
       end if
-      if (msc_voltr(iogrp) /= 0) then
+      if (MSC_MASSTR(iogrp)+MSC_HEATTR(iogrp)+MSC_SALTTR(iogrp) /= 0) then
         call ncwrtc('section','slenmax section',sec_name)
         call ncattr('long_name','Section name')
       end if
@@ -3291,83 +3294,83 @@ contains
     end if
 
     ! store meridional transports
-    if (msc_mmflxl(iogrp) /= 0) then
+    if (MSC_MMFLXL(iogrp) /= 0) then
       call ncwrt1('mmflxl','lat sigma region time',mmflxl)
       call ncattr('long_name', &
                   'Overturning streamfunction')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmftdl(iogrp) /= 0) then
+    if (MSC_MMFTDL(iogrp) /= 0) then
       call ncwrt1('mmftdl','lat sigma region time',mmftdl)
       call ncattr('long_name', &
                   'Overturning streamfunction due to thickness diffusion')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmfsml(iogrp) /= 0) then
+    if (MSC_MMFSML(iogrp) /= 0) then
       call ncwrt1('mmfsml','lat sigma region time',mmfsml)
       call ncattr('long_name', &
                   'Overturning streamfunction due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmflxd(iogrp) /= 0) then
+    if (MSC_MMFLXD(iogrp) /= 0) then
       call ncwrt1('mmflxd','lat depth region time',mmflxd)
       call ncattr('long_name', &
                   'Overturning streamfunction')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmftdd(iogrp) /= 0) then
+    if (MSC_MMFTDD(iogrp) /= 0) then
       call ncwrt1('mmftdd','lat depth region time',mmftdd)
       call ncattr('long_name', &
                   'Overturning streamfunction due to thickness diffusion')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmfsmd(iogrp) /= 0) then
+    if (MSC_MMFSMD(iogrp) /= 0) then
       call ncwrt1('mmfsmd','lat depth region time',mmfsmd)
       call ncattr('long_name', &
                   'Overturning streamfunction due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mhflx(iogrp) /= 0) then
+    if (MSC_MHFLX(iogrp) /= 0) then
       call ncwrt1('mhflx','lat region time',mhflx)
       call ncattr('long_name','Meridional heat flux')
       call ncattr('units','W')
     end if
-    if (msc_mhftd(iogrp) /= 0) then
+    if (MSC_MHFTD(iogrp) /= 0) then
       call ncwrt1('mhftd','lat region time',mhftd)
       call ncattr('long_name', &
            'Meridional heat flux due to thickness diffusion')
       call ncattr('units','W')
     end if
-    if (msc_mhfsm(iogrp) /= 0) then
+    if (MSC_MHFSM(iogrp) /= 0) then
       call ncwrt1('mhfsm','lat region time',mhfsm)
       call ncattr('long_name', &
            'Meridional heat flux due to submesoscale transport')
       call ncattr('units','W')
     end if
-    if (msc_mhfld(iogrp) /= 0) then
+    if (MSC_MHFLD(iogrp) /= 0) then
       call ncwrt1('mhfld','lat region time',mhfld)
       call ncattr('long_name', &
            'Meridional heat flux due to lateral diffusion')
       call ncattr('units','W')
     end if
-    if (msc_msflx(iogrp) /= 0) then
+    if (MSC_MSFLX(iogrp) /= 0) then
       call ncwrt1('msflx','lat region time',msflx)
       call ncattr('long_name','Meridional salt flux')
       call ncattr('units','kg s-1')
     end if
-    if (msc_msftd(iogrp) /= 0) then
+    if (MSC_MSFTD(iogrp) /= 0) then
       call ncwrt1('msftd','lat region time',msftd)
       call ncattr('long_name', &
            'Meridional salt flux due to thickness diffusion')
       call ncattr('units','kg s-1')
     end if
-    if (msc_msfsm(iogrp) /= 0) then
+    if (MSC_MSFSM(iogrp) /= 0) then
       call ncwrt1('msfsm','lat region time',msfsm)
       call ncattr('long_name', &
            'Meridional salt flux due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
-    if (msc_msfld(iogrp) /= 0) then
+    if (MSC_MSFLD(iogrp) /= 0) then
       call ncwrt1('msfld','lat region time',msfld)
       call ncattr('long_name', &
            'Meridional salt flux due to lateral diffusion')
@@ -3375,39 +3378,49 @@ contains
     end if
 
     ! store section transports
-    if (msc_voltr(iogrp) /= 0) then
-      call ncwrt1('voltr','section time',voltr)
-      call ncattr('long_name','Section transports')
+    if (MSC_MASSTR(iogrp) /= 0) then
+      call ncwrt1('masstr','section time',masstr)
+      call ncattr('long_name','Section mass transports')
+      call ncattr('units','kg s-1')
+    end if
+    if (MSC_HEATTR(iogrp) /= 0) then
+      call ncwrt1('heattr','section time',heattr)
+      call ncattr('long_name','Section heat transports')
+      call ncattr('units','W')
+    end if
+    if (MSC_SALTTR(iogrp) /= 0) then
+      call ncwrt1('salttr','section time',salttr)
+      call ncattr('long_name','Section salt transports')
       call ncattr('units','kg s-1')
     end if
 
     ! store global sums and averages
-    if (msc_massgs(iogrp) /= 0) then
+    if (MSC_MASSGS(iogrp) /= 0) then
       call ncwrt1('massgs','time',massgs)
       call ncattr('long_name','Sea water mass')
       call ncattr('units','kg')
     end if
-    if (msc_volgs(iogrp) /= 0) then
+    if (MSC_VOLGS(iogrp) /= 0) then
       call ncwrt1('volgs','time',volgs)
       call ncattr('long_name','Sea water volume')
       call ncattr('units','m3')
     end if
-    if (msc_salnga(iogrp) /= 0) then
+    if (MSC_SALNGA(iogrp) /= 0) then
       call ncwrt1('salnga','time',salnga)
       call ncattr('long_name','Global average salinity')
       call ncattr('units','g kg-1')
     end if
-    if (msc_tempga(iogrp) /= 0) then
+    if (MSC_TEMPGA(iogrp) /= 0) then
       call ncwrt1('tempga','time',tempga)
       call ncattr('long_name','Global average temperature')
       call ncattr('units','degC')
     end if
-    if (msc_sssga(iogrp) /= 0) then
+    if (MSC_SSSGA(iogrp) /= 0) then
       call ncwrt1('sssga','time',sssga)
       call ncattr('long_name','Global average sea surface salinity')
       call ncattr('units','g kg-1')
     end if
-    if (msc_sstga(iogrp) /= 0) then
+    if (MSC_SSTGA(iogrp) /= 0) then
       call ncwrt1('sstga','time',sstga)
       call ncattr('long_name', &
            'Global average sea surface temperature')
@@ -3569,7 +3582,7 @@ contains
     integer :: iogrp
 
     ! Local variables
-    integer       :: nfu,iostatus,n,i,j,k,s,l
+    integer       :: nfu,iostatus,n,i,j,k,s,l,nfld,ACC_UIND,ACC_VIND
     integer, save :: nsi(max_sec)
     integer, save :: isi(max_sec,sdm)
     integer, save :: jsi(max_sec,sdm)
@@ -3579,10 +3592,10 @@ contains
     character(len = 120) :: char120
     logical :: iniflg = .true.
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
-         uflx_cum,vflx_cum,uflx_cum350,vflx_cum350
-    real, dimension(itdm,jtdm) :: &
-         uflx_cumt,vflx_cumt,uflx_cum350t,vflx_cum350t
-    real(8) :: volu,volv
+         ucum,vcum,ucum350,vcum350
+    real, dimension(itdm,jtdm) :: ucumg,vcumg,ucum350g,vcum350g
+    real, dimension(max_sec) :: tr
+    real :: r
 
     !---------------------------------------------------------------
     ! read section information
@@ -3621,92 +3634,134 @@ contains
     !$omp parallel do private(i)
     do j = 1,jj
       do i = 1,ii
-        uflx_cum(i,j) = 0.
-        vflx_cum(i,j) = 0.
-        uflx_cum350(i,j) = 0.
-        vflx_cum350(i,j) = 0.
+        ucum(i,j) = 0.
+        vcum(i,j) = 0.
+        ucum350(i,j) = 0.
+        vcum350(i,j) = 0.
       end do
     end do
     !$omp end parallel do
 
-    ! Compute accumulated transports
-    !$omp parallel do private(k,l,i)
-    do j = 1,jj
-      do k = 1,ddm
+    do nfld = 1,3
+
+      if      (nfld == 1) then
+        if (MSC_MASSTR(iogrp) == 0) cycle
+        ACC_UIND = ACC_UFLXLVL(iogrp)
+        ACC_VIND = ACC_VFLXLVL(iogrp)
+        r = .5/(grav*baclin*nacc_phy(iogrp))
+      else if (nfld == 2) then
+        if (MSC_HEATTR(iogrp) == 0) cycle
+        ACC_UIND = ACC_UTFLXLVL(iogrp)
+        ACC_VIND = ACC_VTFLXLVL(iogrp)
+        r = .5*spcifh/(grav*baclin*nacc_phy(iogrp))
+      else if (nfld == 3) then
+        if (MSC_SALTTR(iogrp) == 0) cycle
+        ACC_UIND = ACC_USFLXLVL(iogrp)
+        ACC_VIND = ACC_VSFLXLVL(iogrp)
+        r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
+      else
+        write(lp,*) 'field index out of range'
+        call xcstop('(diasec)')
+        stop '(diasec)'
+      end if
+
+      ! Compute accumulated transports
+      !$omp parallel do private(k,l,i)
+      do j = 1,jj
         do l = 1,isu(j)
           do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-            uflx_cum(i,j) = uflx_cum(i,j)+ &
-                 phylvl(i,j,k,ACC_UFLXLVL(iogrp)) &
-                 *.5/(grav*baclin*nacc_phy(iogrp))
+            ucum(i,j) = phylvl(i,j,1,ACC_UIND)*r
           end do
         end do
         do l = 1,isv(j)
           do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-            vflx_cum(i,j) = vflx_cum(i,j)+ &
-                 phylvl(i,j,k,ACC_VFLXLVL(iogrp)) &
-                 *.5/(grav*baclin*nacc_phy(iogrp))
+            vcum(i,j) = phylvl(i,j,1,ACC_VIND)*r
           end do
         end do
+        do k = 2,ddm
+          do l = 1,isu(j)
+            do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
+              ucum(i,j) = ucum(i,j) + phylvl(i,j,k,ACC_UIND)*r
+            end do
+          end do
+          do l = 1,isv(j)
+            do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
+              vcum(i,j) = vcum(i,j) + phylvl(i,j,k,ACC_VIND)*r
+            end do
+          end do
 
-        ! the upper 350 m  for equatorial_undercurrent
-        if (k == k350-1) then
-          do l = 1,isu(j)
-            do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-              uflx_cum350(i,j) = uflx_cum(i,j)
+          ! upper 350 m for equatorial_undercurrent
+          if (k == k350-1) then
+            do l = 1,isu(j)
+              do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
+                ucum350(i,j) = ucum(i,j)
+              end do
             end do
-          end do
-          do l = 1,isv(j)
-            do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-              vflx_cum350(i,j) = vflx_cum(i,j)
+            do l = 1,isv(j)
+              do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
+                vcum350(i,j) = vcum(i,j)
+              end do
             end do
-          end do
-        else if (k == k350) then
-          do l = 1,isu(j)
-            do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-              uflx_cum350(i,j) = uflx_cum350(i,j)+ &
-                   w350*(uflx_cum(i,j)-uflx_cum350(i,j))
+          else if (k == k350) then
+            do l = 1,isu(j)
+              do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
+                ucum350(i,j) = ucum350(i,j) + w350*(ucum(i,j)-ucum350(i,j))
+              end do
             end do
-          end do
-          do l = 1,isv(j)
-            do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-              vflx_cum350(i,j) = vflx_cum350(i,j)+ &
-                   w350*(vflx_cum(i,j)-vflx_cum350(i,j))
+            do l = 1,isv(j)
+              do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
+                vcum350(i,j) = vcum350(i,j) + w350*(vcum(i,j)-vcum350(i,j))
+              end do
             end do
-          end do
-        end if
+          end if
+        end do
       end do
-    end do
-    !$omp end parallel do
+      !$omp end parallel do
 
-    ! Collect data on master node
-    call xcaget(uflx_cumt,uflx_cum,1)
-    call xcaget(vflx_cumt,vflx_cum,1)
-    call xcaget(uflx_cum350t,uflx_cum350,1)
-    call xcaget(vflx_cum350t,vflx_cum350,1)
+      ! Collect data on master node
+      call xcaget(ucumg,ucum,1)
+      call xcaget(vcumg,vcum,1)
+      call xcaget(ucum350g,ucum350,1)
+      call xcaget(vcum350g,vcum350,1)
 
-    ! Compute section transports
-    if (mnproc == 1) then
-      do s = 1,sec_num
-        voltr(s) = 0.
-        if (s == equat_sec) then
-          do n = 1,nsi(s)
-            i = isi(s,n)
-            j = jsi(s,n)
-            volu = uflx_cum350t(i,j)*real(usi(s,n))
-            volv = vflx_cum350t(i,j)*real(vsi(s,n))
-            voltr(s) = voltr(s)+volu+volv
-          end do
+      ! Compute section transports
+      if (mnproc == 1) then
+        do s = 1,sec_num
+          tr(s) = 0.
+          if (s == equat_sec) then
+            do n = 1,nsi(s)
+              i = isi(s,n)
+              j = jsi(s,n)
+              tr(s) = tr(s) + ucum350g(i,j)*usi(s,n) + vcum350g(i,j)*vsi(s,n)
+            end do
+          else
+            do n = 1,nsi(s)
+              i = isi(s,n)
+              j = jsi(s,n)
+              tr(s) = tr(s) + ucumg(i,j)*usi(s,n) + vcumg(i,j)*vsi(s,n)
+            end do
+          end if
+        end do
+        if      (nfld == 1) then
+          do s = 1,sec_num
+            masstr(s) = tr(s)
+          enddo
+        else if (nfld == 2) then
+          do s = 1,sec_num
+            heattr(s) = tr(s)
+          enddo
+        else if (nfld == 3) then
+          do s = 1,sec_num
+            salttr(s) = tr(s)
+          enddo
         else
-          do n = 1,nsi(s)
-            i = isi(s,n)
-            j = jsi(s,n)
-            volu = uflx_cumt(i,j)*real(usi(s,n))
-            volv = vflx_cumt(i,j)*real(vsi(s,n))
-            voltr(s) = voltr(s)+volu+volv
-          end do
+          write(lp,*) 'field index out of range'
+          call xchalt('(diasec)')
+          stop '(diasec)'
         end if
-      end do
-    end if
+      end if
+
+    end do
 
   end subroutine diasec
 
@@ -3793,9 +3848,9 @@ contains
               uflg(nind(l),l) = int(uflg1,i2)
               vflg(nind(l),l) = int(vflg1,i2)
               if (iind(nind(l),l) < 1.or. &
-                   iind(nind(l),l) > itdm.or. &
-                   jind(nind(l),l) < 1.or. &
-                   jind(nind(l),l) > jtdm) then
+                  iind(nind(l),l) > itdm.or. &
+                  jind(nind(l),l) < 1.or. &
+                  jind(nind(l),l) > jtdm) then
                 write(lp,*) 'iind=',iind(nind(l),l),' itdm = ',itdm
                 write(lp,*) 'jind=',jind(nind(l),l),' jtdm = ',jtdm
                 call flush(lp)
@@ -3839,7 +3894,7 @@ contains
                stat = istat)
       if (istat /= 0) then
         write (lp,*) 'Cannot allocate enough memory!'
-        call xchalt('(diamer)')
+        call xcstop('(diamer)')
         stop '(diamer)'
       end if
 
@@ -3862,22 +3917,22 @@ contains
         if (MSC_MHFLX(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLX(iogrp)
         ACC_VIND = ACC_VTFLX(iogrp)
-        r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
+        r = .5*spcifh/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 2) then
         if (MSC_MHFTD(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLTD(iogrp)
         ACC_VIND = ACC_VTFLTD(iogrp)
-        r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
+        r = .5*spcifh/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 3) then
         if (MSC_MHFSM(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLSM(iogrp)
         ACC_VIND = ACC_VTFLSM(iogrp)
-        r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
+        r = .5*spcifh/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 4) then
         if (MSC_MHFLD(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLLD(iogrp)
         ACC_VIND = ACC_VTFLLD(iogrp)
-        r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
+        r = .5*spcifh/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 5) then
         if (MSC_MSFLX(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLX(iogrp)
@@ -3900,7 +3955,7 @@ contains
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
       else
         write(lp,*) 'field index out of range'
-        call xchalt('(diamer)')
+        call xcstop('(diamer)')
         stop '(diamer)'
       end if
 
@@ -4071,7 +4126,7 @@ contains
         ACC_VIND = ACC_VMFLSM(iogrp)
       else
         write(lp,*) 'field index out of range'
-        call xchalt('(diamer)')
+        call xcstop('(diamer)')
         stop '(diamer)'
       end if
 
@@ -4424,7 +4479,7 @@ contains
         ACC_VIND = ACC_VMFLSMLVL(iogrp)
       else
         write(lp,*) 'field index out of range'
-        call xchalt('(diamer)')
+        call xcstop('(diamer)')
         stop '(diamer)'
       end if
 
@@ -6717,7 +6772,7 @@ contains
          +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
          +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
          +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
-         +msc_msfsm (iogrp)+msc_msfld (iogrp) /= 0) then
+         +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp) /= 0) then
         call ncdefvar('lat','lat',ndouble,8)
         call ncattr('long_name','Latitude')
         call ncattr('standard_name','latitude')
@@ -6725,7 +6780,7 @@ contains
         call ncdefvar('region','slenmax region',nchar,0)
         call ncattr('long_name','Region name')
       end if
-      if (msc_voltr(iogrp) /= 0) then
+      if (MSC_MASSTR(iogrp)+MSC_HEATTR(iogrp)+MSC_SALTTR(iogrp) /= 0) then
         call ncdefvar('section','slenmax section',nchar,0)
         call ncattr('long_name','Section name')
       end if
@@ -7303,83 +7358,83 @@ contains
     endif
 
     ! define meridional transports
-    if (msc_mmflxl(iogrp) /= 0) then
+    if (MSC_MMFLXL(iogrp) /= 0) then
       call ncdefvar('mmflxl','lat sigma region time',ndouble,8)
       call ncattr('long_name', &
                   'Overturning streamfunction')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmftdl(iogrp) /= 0) then
+    if (MSC_MMFTDL(iogrp) /= 0) then
       call ncdefvar('mmftdl','lat sigma region time',ndouble,8)
       call ncattr('long_name', &
                   'Overturning streamfunction due to thickness diffusion')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmfsml(iogrp) /= 0) then
+    if (MSC_MMFSML(iogrp) /= 0) then
       call ncdefvar('mmfsml','lat sigma region time',ndouble,8)
       call ncattr('long_name', &
                   'Overturning streamfunction due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmflxd(iogrp) /= 0) then
+    if (MSC_MMFLXD(iogrp) /= 0) then
       call ncdefvar('mmflxd','lat depth region time',ndouble,8)
       call ncattr('long_name', &
                   'Overturning streamfunction')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmftdd(iogrp) /= 0) then
+    if (MSC_MMFTDD(iogrp) /= 0) then
       call ncdefvar('mmftdd','lat depth region time',ndouble,8)
       call ncattr('long_name', &
                   'Overturning streamfunction due to thickness diffusion')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mmfsmd(iogrp) /= 0) then
+    if (MSC_MMFSMD(iogrp) /= 0) then
       call ncdefvar('mmfsmd','lat depth region time',ndouble,8)
       call ncattr('long_name', &
                   'Overturning streamfunction due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
-    if (msc_mhflx(iogrp) /= 0) then
+    if (MSC_MHFLX(iogrp) /= 0) then
       call ncdefvar('mhflx','lat region time',ndouble,8)
       call ncattr('long_name','Meridional heat flux')
       call ncattr('units','W')
     end if
-    if (msc_mhftd(iogrp) /= 0) then
+    if (MSC_MHFTD(iogrp) /= 0) then
       call ncdefvar('mhftd','lat region time',ndouble,8)
       call ncattr('long_name', &
            'Meridional heat flux due to thickness diffusion')
       call ncattr('units','W')
     end if
-    if (msc_mhfsm(iogrp) /= 0) then
+    if (MSC_MHFSM(iogrp) /= 0) then
       call ncdefvar('mhfsm','lat region time',ndouble,8)
       call ncattr('long_name', &
            'Meridional heat flux due to submesoscale transport')
       call ncattr('units','W')
     end if
-    if (msc_mhfld(iogrp) /= 0) then
+    if (MSC_MHFLD(iogrp) /= 0) then
       call ncdefvar('mhfld','lat region time',ndouble,8)
       call ncattr('long_name', &
            'Meridional heat flux due to lateral diffusion')
       call ncattr('units','W')
     end if
-    if (msc_msflx(iogrp) /= 0) then
+    if (MSC_MSFLX(iogrp) /= 0) then
       call ncdefvar('msflx','lat region time',ndouble,8)
       call ncattr('long_name','Meridional salt flux')
       call ncattr('units','kg s-1')
     end if
-    if (msc_msftd(iogrp) /= 0) then
+    if (MSC_MSFTD(iogrp) /= 0) then
       call ncdefvar('msftd','lat region time',ndouble,8)
       call ncattr('long_name', &
            'Meridional salt flux due to thickness diffusion')
       call ncattr('units','kg s-1')
     end if
-    if (msc_msfsm(iogrp) /= 0) then
+    if (MSC_MSFSM(iogrp) /= 0) then
       call ncdefvar('msfsm','lat region time',ndouble,8)
       call ncattr('long_name', &
            'Meridional salt flux due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
-    if (msc_msfld(iogrp) /= 0) then
+    if (MSC_MSFLD(iogrp) /= 0) then
       call ncdefvar('msfld','lat region time',ndouble,8)
       call ncattr('long_name', &
            'Meridional salt flux due to lateral diffusion')
@@ -7387,39 +7442,49 @@ contains
     end if
 
     ! store section transports
-    if (msc_voltr(iogrp) /= 0) then
-      call ncdefvar('voltr','section time',ndouble,8)
-      call ncattr('long_name','Section transports')
+    if (MSC_MASSTR(iogrp) /= 0) then
+      call ncdefvar('masstr','section time',ndouble,8)
+      call ncattr('long_name','Section mass transports')
+      call ncattr('units','kg s-1')
+    end if
+    if (MSC_HEATTR(iogrp) /= 0) then
+      call ncdefvar('heattr','section time',ndouble,8)
+      call ncattr('long_name','Section heat transports')
+      call ncattr('units','W')
+    end if
+    if (MSC_SALTTR(iogrp) /= 0) then
+      call ncdefvar('salttr','section time',ndouble,8)
+      call ncattr('long_name','Section salt transports')
       call ncattr('units','kg s-1')
     end if
 
     ! store global sums and averages
-    if (msc_massgs(iogrp) /= 0) then
+    if (MSC_MASSGS(iogrp) /= 0) then
       call ncdefvar('massgs','time',ndouble,8)
       call ncattr('long_name','Sea water mass')
       call ncattr('units','kg')
     end if
-    if (msc_volgs(iogrp) /= 0) then
+    if (MSC_VOLGS(iogrp) /= 0) then
       call ncdefvar('volgs','time',ndouble,8)
       call ncattr('long_name','Sea water volume')
       call ncattr('units','m3')
     end if
-    if (msc_salnga(iogrp) /= 0) then
+    if (MSC_SALNGA(iogrp) /= 0) then
       call ncdefvar('salnga','time',ndouble,8)
       call ncattr('long_name','Global average salinity')
       call ncattr('units','g kg-1')
     end if
-    if (msc_tempga(iogrp) /= 0) then
+    if (MSC_TEMPGA(iogrp) /= 0) then
       call ncdefvar('tempga','time',ndouble,8)
       call ncattr('long_name','Global average temperature')
       call ncattr('units','degC')
     end if
-    if (msc_sssga(iogrp) /= 0) then
+    if (MSC_SSSGA(iogrp) /= 0) then
       call ncdefvar('sssga','time',ndouble,8)
       call ncattr('long_name','Global average sea surface salinity')
       call ncattr('units','g kg-1')
     end if
-    if (msc_sstga(iogrp) /= 0) then
+    if (MSC_SSTGA(iogrp) /= 0) then
       call ncdefvar('sstga','time',ndouble,8)
       call ncattr('long_name', &
            'Global average sea surface temperature')
