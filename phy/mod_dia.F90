@@ -37,7 +37,7 @@ module mod_dia
   use mod_nctools
   use netcdf,        only: nf90_fill_double
   use mod_vcoord,    only: vcoord_type, vcoord_tag, vcoord_isopyc_bulkml, &
-                           sigref_spec, sigmar, sigref, &
+                           sigref_spec, sigmar, sigref, sigdia, &
                            sigref_fun_spec, sigref_adaption
   use mod_grid,      only: scp2, depths, area
   use mod_eos,       only: rho, p_alpha
@@ -229,7 +229,7 @@ module mod_dia
        LVL_VTFLLD  ,LVL_VSFLTD  ,LVL_VSFLSM  ,LVL_VSFLLD  ,LVL_VVEL    , &
        LVL_WFLX    ,LVL_WFLX2   ,LVL_PV      ,LVL_TKE     ,LVL_GLS_PSI , &
        LVL_IDLAGE  , &
-       MSC_MMFLXL  ,MSC_MMFLXD  ,MSC_MMFTDL  ,MSC_MMFSML  ,MSC_MMFTDD  , &
+       MSC_MMFLXL  ,MSC_MMFTDL  ,MSC_MMFSML  ,MSC_MMFLXD  ,MSC_MMFTDD  , &
        MSC_MMFSMD  ,MSC_MHFLX   ,MSC_MHFTD   ,MSC_MHFSM   ,MSC_MHFLD   , &
        MSC_MSFLX   ,MSC_MSFTD   ,MSC_MSFSM   ,MSC_MSFLD   ,MSC_VOLTR   , &
        MSC_MASSGS  ,MSC_VOLGS   ,MSC_SALNGA  ,MSC_TEMPGA  ,MSC_SSSGA   , &
@@ -259,7 +259,7 @@ module mod_dia
        ACC_VFLX    ,ACC_VTFLX   ,ACC_VSFLX   ,ACC_VMFLTD  ,ACC_VMFLSM  , &
        ACC_VTFLTD  ,ACC_VTFLSM  ,ACC_VTFLLD  ,ACC_VSFLTD  ,ACC_VSFLSM  , &
        ACC_VSFLLD  ,ACC_VVEL    ,ACC_WFLX    ,ACC_WFLX2   ,ACC_AVDSG   , &
-       ACC_DPVOR   ,ACC_TKE     ,ACC_GLS_PSI,ACC_UTILLYR, &
+       ACC_DPVOR   ,ACC_TKE     ,ACC_GLS_PSI ,ACC_SIGMA   ,ACC_UTILLYR , &
        ACC_BFSQLVL   ,ACC_DIFDIALVL ,ACC_DIFVMOLVL ,ACC_DIFVHOLVL , &
        ACC_DIFVSOLVL ,ACC_DIFINTLVL ,ACC_DIFISOLVL ,ACC_DZLVL     , &
        ACC_SALNLVL   ,ACC_TEMPLVL   ,ACC_UFLXLVL   ,ACC_UTFLXLVL  , &
@@ -270,10 +270,7 @@ module mod_dia
        ACC_VTFLSMLVL ,ACC_VTFLLDLVL ,ACC_VSFLTDLVL ,ACC_VSFLSMLVL , &
        ACC_VSFLLDLVL ,ACC_VVELLVL   ,ACC_WFLXLVL   ,ACC_WFLX2LVL  , &
        ACC_PVLVL     ,ACC_TKELVL    ,ACC_GLS_PSILVL,ACC_IDLAGELVL , &
-       ACC_UFLXOLD   ,ACC_VFLXOLD   ,ACC_UTILLVL   , &
-       ACC_MMFLXL,ACC_MMFLXD,ACC_MMFTDL,ACC_MMFSML,ACC_MMFTDD, &
-       ACC_MMFSMD,ACC_MHFLX ,ACC_MHFTD ,ACC_MHFSM ,ACC_MHFLD , &
-       ACC_MSFLX ,ACC_MSFTD ,ACC_MSFSM ,ACC_MSFLD ,ACC_VOLTR
+       ACC_UFLXOLD   ,ACC_VFLXOLD   ,ACC_UTILLVL
 
   character(len=10) , dimension(nphymax), public :: GLB_FNAMETAG
   integer           , dimension(nphymax), public :: GLB_AVEPERIO
@@ -321,7 +318,7 @@ module mod_dia
        LVL_VTFLLD  ,LVL_VSFLTD  ,LVL_VSFLSM  ,LVL_VSFLLD  ,LVL_VVEL    , &
        LVL_WFLX    ,LVL_WFLX2   ,LVL_PV      ,LVL_TKE     ,LVL_GLS_PSI , &
        LVL_IDLAGE  , &
-       MSC_MMFLXL ,MSC_MMFLXD ,MSC_MMFTDL ,MSC_MMFSML ,MSC_MMFTDD , &
+       MSC_MMFLXL ,MSC_MMFTDL ,MSC_MMFSML ,MSC_MMFLXD ,MSC_MMFTDD , &
        MSC_MMFSMD ,MSC_MHFLX  ,MSC_MHFTD  ,MSC_MHFSM  ,MSC_MHFLD  , &
        MSC_MSFLX  ,MSC_MSFTD  ,MSC_MSFSM  ,MSC_MSFLD  ,MSC_VOLTR  , &
        MSC_MASSGS ,MSC_VOLGS  ,MSC_SALNGA ,MSC_TEMPGA ,MSC_SSSGA  , &
@@ -457,11 +454,11 @@ contains
     ! Check existence of data files for meridional and section transport
     ! diagnostics
     if (mnproc == 1) then
-      if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFLXD(1:nphy)+MSC_MMFTDL(1:nphy) &
-           +MSC_MMFSML(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy) &
-           +MSC_MHFLX (1:nphy)+MSC_MHFTD (1:nphy)+MSC_MHFSM (1:nphy) &
-           +MSC_MHFLD (1:nphy)+MSC_MSFLX (1:nphy)+MSC_MSFTD (1:nphy) &
-           +msc_msfsm (1:nphy)+msc_msfld (1:nphy)) /= 0) then
+      if (sum(MSC_MMFLXL(1:nphy)+MSC_MMFTDL(1:nphy)+MSC_MMFSML(1:nphy) &
+             +MSC_MMFLXD(1:nphy)+MSC_MMFTDD(1:nphy)+MSC_MMFSMD(1:nphy) &
+             +MSC_MHFLX (1:nphy)+MSC_MHFTD (1:nphy)+MSC_MHFSM (1:nphy) &
+             +MSC_MHFLD (1:nphy)+MSC_MSFLX (1:nphy)+MSC_MSFTD (1:nphy) &
+             +msc_msfsm (1:nphy)+msc_msfld (1:nphy)) /= 0) then
         inquire(file=mer_orfile,exist = fexist)
         if (.not.fexist) then
           write (lp,'(3a)') ' Could not find file ', &
@@ -509,7 +506,7 @@ contains
       ACC_EVA(n)      = H2D_EVA(n)
       ACC_FMLTFZ(n)   = H2D_FMLTFZ(n)
       ACC_FICE(n)     = H2D_FICE(n)   + H2D_HICE(n)   + H2D_UICE(n) &
-           + H2D_VICE(n)   + H2D_HSNW(n)
+                      + H2D_VICE(n)   + H2D_HSNW(n)
       ACC_HICE(n)     = H2D_HICE(n)   + H2D_UICE(n)   + H2D_VICE(n)
       ACC_HMAT(n)     = H2D_HMAT(n)
       ACC_HMLTFZ(n)   = H2D_HMLTFZ(n)
@@ -551,8 +548,7 @@ contains
       ACC_SEALV(n)    = H2D_SEALV(n)
       ACC_SLVSQ(n)    = H2D_SLVSQ(n)
       ACC_SFL(n)      = H2D_SFL(n)
-      ACC_SIGMX(n)    = H2D_SIGMX(n)  + MSC_MMFLXL(n) + MSC_MMFTDL(n) &
-           + MSC_MMFSML(n)
+      ACC_SIGMX(n)    = H2D_SIGMX(n)
       ACC_SOP(n)      = H2D_SOP(n)
       ACC_SSS(n)      = H2D_SSS(n)    + MSC_SSSGA(n)
       ACC_SSSSQ(n)    = H2D_SSSSQ(n)
@@ -592,14 +588,15 @@ contains
       ACC_DIFISO(n)   = LYR_DIFISO(n)
       ACC_DIFISOLVL(n)= LVL_DIFISO(n)
       ACC_DP(n)       = LYR_DP(n)     + LYR_BFSQ(n)   + LYR_SALN(n) &
-           + LYR_TEMP(n)   + LYR_DIFDIA(n) + LYR_DIFVMO(n) &
-           + LYR_DIFVHO(n) + LYR_DIFVSO(n) + LYR_DIFINT(n) &
-           + LYR_DIFISO(n) + LYR_TKE(n)    + LYR_GLS_PSI(n) &
-           + LVL_BFSQ(n)   + LVL_SALN(n)   + LVL_TEMP(n) &
-           + LVL_DIFDIA(n) + LVL_DIFVMO(n) + LVL_DIFVHO(n) &
-           + LVL_DIFVSO(n) + LVL_DIFINT(n) + LVL_DIFISO(n) &
-           + LVL_TKE(n)    + LVL_GLS_PSI(n) &
-           + MSC_MASSGS(n) + MSC_SALNGA(n) + MSC_TEMPGA(n)
+                      + LYR_TEMP(n)   + LYR_DIFDIA(n) + LYR_DIFVMO(n) &
+                      + LYR_DIFVHO(n) + LYR_DIFVSO(n) + LYR_DIFINT(n) &
+                      + LYR_DIFISO(n) + LYR_TKE(n)    + LYR_GLS_PSI(n) &
+                      + LVL_BFSQ(n)   + LVL_SALN(n)   + LVL_TEMP(n) &
+                      + LVL_DIFDIA(n) + LVL_DIFVMO(n) + LVL_DIFVHO(n) &
+                      + LVL_DIFVSO(n) + LVL_DIFINT(n) + LVL_DIFISO(n) &
+                      + LVL_TKE(n)    + LVL_GLS_PSI(n) &
+                      + MSC_MMFLXL(n) + MSC_MMFTDL(n) + MSC_MMFSML(n) &
+                      + MSC_MASSGS(n) + MSC_SALNGA(n) + MSC_TEMPGA(n)
       ACC_DPU(n)      = LYR_DPU(n)    + LYR_UVEL(n)
       ACC_DPV(n)      = LYR_DPV(n)    + LYR_VVEL(n)
       ACC_DZ(n)       = LYR_DZ(n)     + MSC_VOLGS(n)
@@ -609,9 +606,9 @@ contains
       ACC_TEMP(n)     = LYR_TEMP(n)   + MSC_TEMPGA(n)
       ACC_TEMPLVL(n)  = LVL_TEMP(n)
       ACC_UFLX(n)     = LYR_UFLX(n)   + MSC_MMFLXL(n) + LYR_WFLX(n) &
-           + LYR_WFLX2(n)
+                      + LYR_WFLX2(n)
       ACC_UFLXLVL(n)  = LVL_UFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) &
-           + LVL_WFLX(n)   + LVL_WFLX2(n)
+                      + LVL_WFLX(n)   + LVL_WFLX2(n)
       ACC_UFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
       ACC_UTFLX(n)    = LYR_UTFLX(n)  + MSC_MHFLX(n)
       ACC_UTFLXLVL(n) = LVL_UTFLX(n)
@@ -636,9 +633,9 @@ contains
       ACC_UVEL(n)     = LYR_UVEL(n)
       ACC_UVELLVL(n)  = LVL_UVEL(n)
       ACC_VFLX(n)     = LYR_VFLX(n)   + MSC_MMFLXL(n) + LYR_WFLX(n) &
-           + LYR_WFLX2(n)
+                      + LYR_WFLX2(n)
       ACC_VFLXLVL(n)  = LVL_VFLX(n)   + MSC_MMFLXD(n) + MSC_VOLTR(n) &
-           + LVL_WFLX(n)   + LVL_WFLX2(n)
+                      + LVL_WFLX(n)   + LVL_WFLX2(n)
       ACC_VFLXOLD(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)
       ACC_VTFLX(n)    = LYR_VTFLX(n)  + MSC_MHFLX(n)
       ACC_VTFLXLVL(n) = LVL_VTFLX(n)
@@ -663,13 +660,13 @@ contains
       ACC_VVEL(n)     = LYR_VVEL(n)
       ACC_VVELLVL(n)  = LVL_VVEL(n)
       ACC_WFLX(n)     = LYR_WFLX(n)   + LYR_WFLX2(n)  + LVL_WFLX(n) &
-           + LVL_WFLX2(n)
+                      + LVL_WFLX2(n)
       ACC_WFLXLVL(n)  = LVL_WFLX(n)   + LVL_WFLX2(n)  + LYR_WFLX(n) &
-           + LYR_WFLX2(n)
+                      + LYR_WFLX2(n)
       ACC_WFLX2(n)    = LYR_WFLX2(n)  + LYR_WFLX(n)   + LVL_WFLX(n) &
-           + LVL_WFLX2(n)
+                      + LVL_WFLX2(n)
       ACC_WFLX2LVL(n) = LVL_WFLX2(n)  + LVL_WFLX(n)   + LYR_WFLX(n) &
-           + LYR_WFLX2(n)
+                      + LYR_WFLX2(n)
       ACC_AVDSG(n)    = LYR_PV(n)
       ACC_DPVOR(n)    = LYR_PV(n)
       ACC_PVLVL(n)    = LVL_PV(n)
@@ -678,21 +675,7 @@ contains
       ACC_GLS_PSI(n)  = LYR_GLS_PSI(n)
       ACC_GLS_PSILVL(n) = LVL_GLS_PSI(n)
       ACC_IDLAGELVL(n)= LVL_IDLAGE(n)
-      ACC_MMFLXL(n)   = MSC_MMFLXL(n)
-      ACC_MMFLXD(n)   = MSC_MMFLXD(n)
-      ACC_MMFTDL(n)   = MSC_MMFTDL(n)
-      ACC_MMFSML(n)   = MSC_MMFSML(n)
-      ACC_MMFTDD(n)   = MSC_MMFTDD(n)
-      ACC_MMFSMD(n)   = MSC_MMFSMD(n)
-      ACC_MHFLX(n)    = MSC_MHFLX(n)
-      ACC_MHFTD(n)    = MSC_MHFTD(n)
-      ACC_MHFSM(n)    = MSC_MHFSM(n)
-      ACC_MHFLD(n)    = MSC_MHFLD(n)
-      ACC_MSFLX(n)    = MSC_MSFLX(n)
-      ACC_MSFTD(n)    = MSC_MSFTD(n)
-      ACC_MSFSM(n)    = MSC_MSFSM(n)
-      ACC_MSFLD(n)    = MSC_MSFLD(n)
-      ACC_VOLTR(n)    = MSC_VOLTR(n)
+      ACC_SIGMA(n)    = MSC_MMFLXL(n) + MSC_MMFTDL(n) + MSC_MMFSML(n)
 
       ! - Determine position in buffer
       if (ACC_ABSWND(n) /= 0) nphyh2d = nphyh2d+1
@@ -930,6 +913,8 @@ contains
       ACC_TKE(n) = nphylyr*min(1,ACC_TKE(n))
       if (ACC_GLS_PSI(n) /= 0) nphylyr = nphylyr+1
       ACC_GLS_PSI(n) = nphylyr*min(1,ACC_GLS_PSI(n))
+      if (ACC_SIGMA(n) /= 0) nphylyr = nphylyr+1
+      ACC_SIGMA(n) = nphylyr*min(1,ACC_SIGMA(n))
 
       if (ACC_BFSQLVL(n) /= 0) nphylvl = nphylvl+1
       ACC_BFSQLVL(n) = nphylvl*min(1,ACC_BFSQLVL(n))
@@ -1663,6 +1648,9 @@ contains
     ! weighted temperature [degC*kg/m/s^2]
     call acclyr(ACC_TEMP,temp(1-nbdy,1-nbdy,k1m), dp(1-nbdy,1-nbdy,k1m),1,'p')
 
+    ! weighted potential density [kg^2/m^3/s^2]
+    call acclyr(ACC_SIGMA,sigma(1-nbdy,1-nbdy,k1m), dp(1-nbdy,1-nbdy,k1m),1,'p')
+
     ! layer pressure thickness [kg/m/s^2]
     call acclyr(ACC_DP,dp(1-nbdy,1-nbdy,k1m),dummy,0,'p')
 
@@ -2149,7 +2137,7 @@ contains
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,ddm) :: wghtsflx
     real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: tmp3d
     integer :: nt,nat,km
-    character :: trcnm*80,trcnml*80,dimslyr*100
+    character :: trcnm*80,trcnml*80
     real :: treps
     parameter (treps = 1.e-14)
 
@@ -2161,12 +2149,12 @@ contains
     cmpflg = GLB_COMPFLAG(iogrp)
 
     ! compute meridional transports and transports through sections
-    if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp) &
-       +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
-       +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
-       +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-       +ACC_MSFSM (iogrp)+ACC_MSFLD (iogrp) /= 0) call diamer(iogrp)
-    if (ACC_VOLTR(iogrp) /= 0) call diasec(iogrp)
+    if (MSC_MMFLXL(iogrp)+MSC_MMFTDL(iogrp)+MSC_MMFSML(iogrp) &
+       +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
+       +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
+       +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
+       +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp) /= 0) call diamer(iogrp)
+    if (MSC_VOLTR(iogrp) /= 0) call diasec(iogrp)
 
     ! compute barotropic mass streamfunction
     if (h2d_btmstr(iogrp) /= 0) then
@@ -2561,6 +2549,7 @@ contains
     end if
     if (vcoord_tag /= vcoord_isopyc_bulkml) then
       call ncdims('layer',kdm)
+      call ncdims('sigma',kdm)
     else
       call ncdims('sigma',kdm)
     endif
@@ -2568,19 +2557,19 @@ contains
     call ncdims('bounds',2)
     call ncdims('time',0)
 
-    if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp) &
-       +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
-       +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
-       +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-       +ACC_MSFSM (iogrp)+ACC_MSFLD (iogrp)+msc_voltr (iogrp) /= 0) then
+    if (MSC_MMFLXL(iogrp)+MSC_MMFTDL(iogrp)+MSC_MMFSML(iogrp) &
+       +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
+       +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
+       +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
+       +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp)+MSC_VOLTR (iogrp) /= 0) then
       call ncdims('slenmax',slenmax)
     end if
 
-    if (ACC_MMFLXL(iogrp)+ACC_MMFLXD(iogrp)+ACC_MMFTDL(iogrp) &
-       +ACC_MMFSML(iogrp)+ACC_MMFTDD(iogrp)+ACC_MMFSMD(iogrp) &
-       +ACC_MHFLX (iogrp)+ACC_MHFTD (iogrp)+ACC_MHFSM (iogrp) &
-       +ACC_MHFLD (iogrp)+ACC_MSFLX (iogrp)+ACC_MSFTD (iogrp) &
-       +ACC_MSFSM (iogrp)+ACC_MSFLD (iogrp) /= 0) then
+    if (MSC_MMFLXL(iogrp)+MSC_MMFTDL(iogrp)+MSC_MMFSML(iogrp) &
+       +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
+       +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
+       +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
+       +MSC_MSFSM (iogrp)+MSC_MSFLD (iogrp) /= 0) then
       if ((lmax > 0.and.lmax <= ldm)) then
         call ncdims('lat',lmax)
         call ncdims('region',mer_nreg)
@@ -2593,7 +2582,7 @@ contains
       end if
     end if
 
-    if (ACC_VOLTR(iogrp) /= 0) then
+    if (MSC_VOLTR(iogrp) /= 0) then
       if ((sec_num > 0.and.sec_num <= max_sec)) then
         call ncdims('section',sec_num)
       else
@@ -2633,8 +2622,14 @@ contains
     ! write auxillary dimension information
     if (irec(iogrp) == 1) then
       if (vcoord_tag /= vcoord_isopyc_bulkml) then
-        ! sigma levels
-        call ncwrt1('sigma','layer',sigref(1:kk))
+        ! reference sigma levels
+        call ncwrt1('sigref','layer',sigref(1:kk))
+        call ncattr('long_name','Reference potential density')
+        call ncattr('standard_name','sea_water_sigma_theta')
+        call ncattr('units','kg m-3')
+        call ncattr('positive','down')
+        ! diadnostic sigma levels
+        call ncwrt1('sigma','sigma',sigdia(1:kk))
         call ncattr('long_name','Potential density')
         call ncattr('standard_name','sea_water_sigma_theta')
         call ncattr('units','kg m-3')
@@ -2654,8 +2649,8 @@ contains
       call ncattr('positive','down')
       call ncattr('bounds','depth_bnds')
       call ncwrt1('depth_bnds','bounds depth',depthslev_bnds)
-      if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp) &
-         +MSC_MMFSML(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
+      if (MSC_MMFLXL(iogrp)+MSC_MMFTDL(iogrp)+MSC_MMFSML(iogrp) &
+         +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
          +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
          +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
          +msc_msfsm (iogrp)+msc_msfld (iogrp) /= 0) then
@@ -3296,49 +3291,40 @@ contains
     end if
 
     ! store meridional transports
-    if (vcoord_tag /= vcoord_isopyc_bulkml) then
-      dimslyr='lat layer region time'
-    else
-      dimslyr='lat sigma region time'
-    end if
     if (msc_mmflxl(iogrp) /= 0) then
-      call ncwrt1('mmflxl',dimslyr,mmflxl)
+      call ncwrt1('mmflxl','lat sigma region time',mmflxl)
       call ncattr('long_name', &
-           'Overturning stream-function on layers')
+                  'Overturning streamfunction')
+      call ncattr('units','kg s-1')
+    end if
+    if (msc_mmftdl(iogrp) /= 0) then
+      call ncwrt1('mmftdl','lat sigma region time',mmftdl)
+      call ncattr('long_name', &
+                  'Overturning streamfunction due to thickness diffusion')
+      call ncattr('units','kg s-1')
+    end if
+    if (msc_mmfsml(iogrp) /= 0) then
+      call ncwrt1('mmfsml','lat sigma region time',mmfsml)
+      call ncattr('long_name', &
+                  'Overturning streamfunction due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
     if (msc_mmflxd(iogrp) /= 0) then
       call ncwrt1('mmflxd','lat depth region time',mmflxd)
       call ncattr('long_name', &
-           'Overturning stream-function on z-levels')
-      call ncattr('units','kg s-1')
-    end if
-    if (msc_mmftdl(iogrp) /= 0) then
-      call ncwrt1('mmftdl',dimslyr,mmftdl)
-      call ncattr('long_name', &
-           'Overturning stream-function due to thickness diffusion '// &
-           'on layers')
-      call ncattr('units','kg s-1')
-    end if
-    if (msc_mmfsml(iogrp) /= 0) then
-      call ncwrt1('mmfsml',dimslyr,mmfsml)
-      call ncattr('long_name', &
-           'Overturning stream-function due to submesoscale transport '// &
-           'on layers')
+                  'Overturning streamfunction')
       call ncattr('units','kg s-1')
     end if
     if (msc_mmftdd(iogrp) /= 0) then
       call ncwrt1('mmftdd','lat depth region time',mmftdd)
       call ncattr('long_name', &
-           'Overturning stream-function due to thickness diffusion '// &
-           'on z-levels')
+                  'Overturning streamfunction due to thickness diffusion')
       call ncattr('units','kg s-1')
     end if
     if (msc_mmfsmd(iogrp) /= 0) then
       call ncwrt1('mmfsmd','lat depth region time',mmfsmd)
       call ncattr('long_name', &
-           'Overturning stream-function due to submesoscale transport '// &
-           'on z-levels')
+                  'Overturning streamfunction due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
     if (msc_mhflx(iogrp) /= 0) then
@@ -3730,17 +3716,25 @@ contains
     ! Arguments
     integer, intent(in) :: iogrp
 
+    ! Parameters
+    real, parameter :: &
+      sigeps = 1.e-4
+
     ! Local variables
     integer :: ncid,dimid,varid,i,j,k,l,m,n,o,s,ocn_nreg,nfu,iostatus
     integer :: istat,iind1,jind1,uflg1,vflg1,nind1
     integer :: nfld,ACC_UIND,ACC_VIND,nind(ldm),iind(sdm,ldm),jind(sdm,ldm)
-    integer :: kmxl(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy)
+    integer :: kup, klo, kd
     integer(i2) :: uflg(sdm,ldm),vflg(sdm,ldm),oflg(itdm,jtdm)
-    real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: ucum,vcum
+    real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy) :: &
+      ucum,vcum
+    real, dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kk) :: &
+      sigave,ucumdia,vcumdia
     real, dimension(itdm,jtdm) :: depthst,ucumg,vcumg
-    real, save, allocatable, dimension(:,:) ::  mflx_or,mflx_mr,mflx_last_mr
+    real, dimension(kk+1) :: ucumint, vcumint, sigint
+    real, save, allocatable, dimension(:,:) ::  mflx_or,mflx_mr
     integer, save, allocatable, dimension(:,:) :: mcnt_or,mcnt_mr,kmax
-    real :: r
+    real :: r, sigup, siglo
     character :: c20*20
     logical :: iniflg = .true.
 
@@ -3821,10 +3815,9 @@ contains
 
         ! Allocate utility arrays for meridional fluxes
         allocate(mflx_or(lmax,ocn_nreg),mflx_mr(lmax,mer_nreg), &
-             mflx_last_mr(lmax,mer_nreg), &
-             mcnt_or(lmax,ocn_nreg),mcnt_mr(lmax,mer_nreg), &
-             kmax(lmax,mer_nreg), &
-             stat = istat)
+                 mcnt_or(lmax,ocn_nreg),mcnt_mr(lmax,mer_nreg), &
+                 kmax(lmax,mer_nreg), &
+                 stat = istat)
         if (istat /= 0) then
           write (lp,*) 'Cannot allocate enough memory!'
           call xchalt('(diamer)')
@@ -3837,13 +3830,13 @@ contains
 
       ! - Allocate arrays for meridional fluxes
       allocate(mmflxl(lmax,kdm,mer_nreg),mmftdl(lmax,kdm,mer_nreg), &
-           mmfsml(lmax,kdm,mer_nreg),mmflxd(lmax,ddm,mer_nreg), &
-           mmftdd(lmax,ddm,mer_nreg),mmfsmd(lmax,ddm,mer_nreg), &
-           mhflx(lmax,mer_nreg),mhftd(lmax,mer_nreg), &
-           mhfsm(lmax,mer_nreg),mhfld(lmax,mer_nreg), &
-           msflx(lmax,mer_nreg),msftd(lmax,mer_nreg), &
-           msfsm(lmax,mer_nreg),msfld(lmax,mer_nreg), &
-           stat = istat)
+               mmfsml(lmax,kdm,mer_nreg),mmflxd(lmax,ddm,mer_nreg), &
+               mmftdd(lmax,ddm,mer_nreg),mmfsmd(lmax,ddm,mer_nreg), &
+               mhflx(lmax,mer_nreg),mhftd(lmax,mer_nreg), &
+               mhfsm(lmax,mer_nreg),mhfld(lmax,mer_nreg), &
+               msflx(lmax,mer_nreg),msftd(lmax,mer_nreg), &
+               msfsm(lmax,mer_nreg),msfld(lmax,mer_nreg), &
+               stat = istat)
       if (istat /= 0) then
         write (lp,*) 'Cannot allocate enough memory!'
         call xchalt('(diamer)')
@@ -3866,42 +3859,42 @@ contains
     do nfld = 1,8
 
       if     (nfld == 1) then
-        if (ACC_MHFLX(iogrp) == 0) cycle
+        if (MSC_MHFLX(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLX(iogrp)
         ACC_VIND = ACC_VTFLX(iogrp)
         r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 2) then
-        if (ACC_MHFTD(iogrp) == 0) cycle
+        if (MSC_MHFTD(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLTD(iogrp)
         ACC_VIND = ACC_VTFLTD(iogrp)
         r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 3) then
-        if (ACC_MHFSM(iogrp) == 0) cycle
+        if (MSC_MHFSM(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLSM(iogrp)
         ACC_VIND = ACC_VTFLSM(iogrp)
         r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 4) then
-        if (ACC_MHFLD(iogrp) == 0) cycle
+        if (MSC_MHFLD(iogrp) == 0) cycle
         ACC_UIND = ACC_UTFLLD(iogrp)
         ACC_VIND = ACC_VTFLLD(iogrp)
         r = spcifh*.5/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 5) then
-        if (ACC_MSFLX(iogrp) == 0) cycle
+        if (MSC_MSFLX(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLX(iogrp)
         ACC_VIND = ACC_VSFLX(iogrp)
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 6) then
-        if (ACC_MSFTD(iogrp) == 0) cycle
+        if (MSC_MSFTD(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLTD(iogrp)
         ACC_VIND = ACC_VSFLTD(iogrp)
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 7) then
-        if (ACC_MSFSM(iogrp) == 0) cycle
+        if (MSC_MSFSM(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLSM(iogrp)
         ACC_VIND = ACC_VSFLSM(iogrp)
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
       else if (nfld == 8) then
-        if (ACC_MSFLD(iogrp) == 0) cycle
+        if (MSC_MSFLD(iogrp) == 0) cycle
         ACC_UIND = ACC_USFLLD(iogrp)
         ACC_VIND = ACC_VSFLLD(iogrp)
         r = .5*g2kg/(grav*baclin*nacc_phy(iogrp))
@@ -4041,56 +4034,39 @@ contains
 
     ! Compute overturning stream function at layer interfaces
 
-    r = 1./real(nacc_phy(iogrp))
-    kmxl = 0
-    !$omp parallel do private(l,i,k)
+    ! Obtain layer thickness averaged potential density.
+    !$omp parallel do private(k,l,i)
     do j = 1,jj
-      do l = 1,isp(j)
-        do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          k = 1
-          do while (phyh2d(i,j,ACC_SIGMX(iogrp))*r >= sigmar(i,j,k))
-            k = k+1
-            if (k == kk) exit
+      do k = 1,kk
+        do l = 1,isp(j)
+          do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
+            if (phylyr(i,j,k,ACC_DP(iogrp)) > onecm*nacc_phy(iogrp)) then
+              sigave(i,j,k) = phylyr(i,j,k,ACC_SIGMA(iogrp)) &
+                             /phylyr(i,j,k,ACC_DP(iogrp))
+            else
+              sigave(i,j,k) = nf90_fill_double
+            end if
           end do
-          kmxl(i,j) = k
         end do
       end do
     end do
     !$omp end parallel do
-    !$omp parallel do private(l,i)
-    do j = 1,jj
-      do l = 1,isp(j)
-        do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
-          util1(i,j) = kmxl(i,j)
-        end do
-      end do
-    end do
-    !$omp end parallel do
-    call xctilr(util1, 1,1, 1,1, halo_ps)
-    !$omp parallel do private(l,i)
-    do j = 0,jj+1
-      do l = 1,isp(j)
-        do i = max(0,ifp(j,l)),min(ii+1,ilp(j,l))
-          kmxl(i,j) = nint(util1(i,j))
-        end do
-      end do
-    end do
-    !$omp end parallel do
+    call xctilr(sigave, 1,kk, 1,1, halo_ps)
 
     r = .5/(grav*baclin*nacc_phy(iogrp))
 
     do nfld = 1,3
 
       if     (nfld == 1) then
-        if (ACC_MMFLXL(iogrp) == 0) cycle
+        if (MSC_MMFLXL(iogrp) == 0) cycle
         ACC_UIND = ACC_UFLX(iogrp)
         ACC_VIND = ACC_VFLX(iogrp)
       else if (nfld == 2) then
-        if (ACC_MMFTDL(iogrp) == 0) cycle
+        if (MSC_MMFTDL(iogrp) == 0) cycle
         ACC_UIND = ACC_UMFLTD(iogrp)
         ACC_VIND = ACC_VMFLTD(iogrp)
       else if (nfld == 3) then
-        if (ACC_MMFSML(iogrp) == 0) cycle
+        if (MSC_MMFSML(iogrp) == 0) cycle
         ACC_UIND = ACC_UMFLSM(iogrp)
         ACC_VIND = ACC_VMFLSM(iogrp)
       else
@@ -4099,95 +4075,273 @@ contains
         stop '(diamer)'
       end if
 
-      if (mnproc == 1) then
-        do l = 1,lmax
-          do m = 1,mer_nreg
-            mflx_last_mr(l,m) = 0.
-          end do
-        end do
-      end if
-      !$omp parallel do private(l,i)
+      ! Interpolate integrated mass flux to diagnostic potential densities.
+
+      ucumdia(:,:,:) = nf90_fill_double
+      vcumdia(:,:,:) = nf90_fill_double
+
+      !$omp parallel do private(l,i,ucumint,vcumint,k,sigup,siglo,sigint, &
+      !$omp                     kup,klo,kd,klo,vcumint)
       do j = 1,jj
+
         do l = 1,isu(j)
           do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-            ucum(i,j) = 0.
+
+            ! Compute cumulative sums of layer mass fluxes, starting at the
+            ! surface.
+            ucumint(1) = 0.
+            do k = 1,kk
+              ucumint(k+1) = ucumint(k) + r*phylyr(i,j,k,ACC_UIND)
+            end do
+
+            ! Interpolate potential density to layer interfaces where the
+            ! cumulative sums represents the integrated mass flux from the
+            ! surface.
+            if     (sigave(i-1,j,1) /= nf90_fill_double .and. &
+                    sigave(i  ,j,1) /= nf90_fill_double) then
+              sigup = .5*(sigave(i-1,j,1) + sigave(i,j,1))
+            elseif (sigave(i-1,j,1) /= nf90_fill_double) then
+              sigup = sigave(i-1,j,1)
+            elseif (sigave(i  ,j,1) /= nf90_fill_double) then
+              sigup = sigave(i  ,j,1)
+            else
+              sigup = nf90_fill_double
+            end if
+            if     (sigave(i-1,j,2) /= nf90_fill_double .and. &
+                    sigave(i  ,j,2) /= nf90_fill_double) then
+              siglo = .5*(sigave(i-1,j,2) + sigave(i,j,2))
+            elseif (sigave(i-1,j,2) /= nf90_fill_double) then
+              siglo = sigave(i-1,j,2)
+            elseif (sigave(i  ,j,2) /= nf90_fill_double) then
+              siglo = sigave(i  ,j,2)
+            else
+              siglo = nf90_fill_double
+            end if
+            if (sigup /= nf90_fill_double .and. &
+                siglo /= nf90_fill_double) then
+              sigint(1) = 1.5*sigup - .5*siglo
+              sigint(2) = .5*(sigup + siglo)
+            else
+              sigint(1) = nf90_fill_double
+              sigint(2) = nf90_fill_double
+            end if 
+            do k = 3,kk
+              sigup = siglo
+              if     (sigave(i-1,j,k) /= nf90_fill_double .and. &
+                      sigave(i  ,j,k) /= nf90_fill_double) then
+                siglo = .5*(sigave(i-1,j,k) + sigave(i,j,k))
+              elseif (sigave(i-1,j,k) /= nf90_fill_double) then
+                siglo = sigave(i-1,j,k)
+              elseif (sigave(i  ,j,k) /= nf90_fill_double) then
+                siglo = sigave(i  ,j,k)
+              else
+                siglo = nf90_fill_double
+              end if
+              if (sigup /= nf90_fill_double .and. &
+                  siglo /= nf90_fill_double) then
+                sigint(k) = .5*(sigup + siglo)
+              else
+                sigint(k) = nf90_fill_double
+              end if 
+            end do
+            if (sigup /= nf90_fill_double .and. &
+                siglo /= nf90_fill_double) then
+              sigint(kk+1) = 1.5*siglo - .5*sigup
+            else
+              sigint(kk+1) = nf90_fill_double
+            end if 
+
+            ! Interpolate the integrated mass flux to the diagnostic potential
+            ! densities.
+            kup = 1
+            do while (sigint(kup) == nf90_fill_double)
+              kup = kup + 1
+              if (kup > kk + 1) exit
+            end do
+            if (kup > kk + 1) exit
+            kd = 1
+            do while (sigdia(kd) < sigint(kup))
+              kd = kd + 1
+            end do
+            klo = kup + 1
+            outer1: do kd = kd,kk
+              do while (sigint(klo) == nf90_fill_double .or. &
+                        sigint(klo) < max(sigdia(kd),sigint(kup) + sigeps))
+                if (sigint(klo) /= nf90_fill_double .and. &
+                    sigint(klo) >= sigint(kup) + sigeps) kup = klo
+                klo = klo + 1
+                if (klo > kk + 1) exit outer1
+              end do
+              ucumdia(i,j,kd) = ( (sigint(klo) - sigdia(kd ))*ucumint(kup) &
+                                + (sigdia(kd ) - sigint(kup))*ucumint(klo)) &
+                                /(sigint(klo) - sigint(kup))
+            end do outer1
+
           end do
         end do
+
         do l = 1,isv(j)
           do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-            vcum(i,j) = 0.
+
+            ! Compute cumulative sums of layer mass fluxes, starting at the
+            ! surface.
+            vcumint(1) = 0.
+            do k = 1,kk
+              vcumint(k+1) = vcumint(k) + r*phylyr(i,j,k,ACC_VIND)
+            end do
+
+            ! Interpolate potential density to layer interfaces where the
+            ! cumulative sums represents the integrated mass flux from the
+            ! surface.
+            if     (sigave(i,j-1,1) /= nf90_fill_double .and. &
+                    sigave(i,j  ,1) /= nf90_fill_double) then
+              sigup = .5*(sigave(i,j-1,1) + sigave(i,j,1))
+            elseif (sigave(i,j-1,1) /= nf90_fill_double) then
+              sigup = sigave(i,j-1,1)
+            elseif (sigave(i,j  ,1) /= nf90_fill_double) then
+              sigup = sigave(i,j  ,1)
+            else
+              sigup = nf90_fill_double
+            end if
+            if     (sigave(i,j-1,2) /= nf90_fill_double .and. &
+                    sigave(i,j  ,2) /= nf90_fill_double) then
+              siglo = .5*(sigave(i,j-1,2) + sigave(i,j,2))
+            elseif (sigave(i,j-1,2) /= nf90_fill_double) then
+              siglo = sigave(i,j-1,2)
+            elseif (sigave(i,j  ,2) /= nf90_fill_double) then
+              siglo = sigave(i,j  ,2)
+            else
+              siglo = nf90_fill_double
+            end if
+            if (sigup /= nf90_fill_double .and. &
+                siglo /= nf90_fill_double) then
+              sigint(1) = 1.5*sigup - .5*siglo
+              sigint(2) = .5*(sigup + siglo)
+            else
+              sigint(1) = nf90_fill_double
+              sigint(2) = nf90_fill_double
+            end if 
+            do k = 3,kk
+              sigup = siglo
+              if     (sigave(i,j-1,k) /= nf90_fill_double .and. &
+                      sigave(i,j  ,k) /= nf90_fill_double) then
+                siglo = .5*(sigave(i,j-1,k) + sigave(i,j,k))
+              elseif (sigave(i,j-1,k) /= nf90_fill_double) then
+                siglo = sigave(i,j-1,k)
+              elseif (sigave(i,j  ,k) /= nf90_fill_double) then
+                siglo = sigave(i,j  ,k)
+              else
+                siglo = nf90_fill_double
+              end if
+              if (sigup /= nf90_fill_double .and. &
+                  siglo /= nf90_fill_double) then
+                sigint(k) = .5*(sigup + siglo)
+              else
+                sigint(k) = nf90_fill_double
+              end if 
+            end do
+            if (sigup /= nf90_fill_double .and. &
+                siglo /= nf90_fill_double) then
+              sigint(kk+1) = 1.5*siglo - .5*sigup
+            else
+              sigint(kk+1) = nf90_fill_double
+            end if 
+
+            ! Interpolate the integrated mass flux to the diagnostic potential
+            ! densities.
+            kup = 1
+            do while (sigint(kup) == nf90_fill_double)
+              kup = kup + 1
+              if (kup > kk + 1) exit
+            end do
+            if (kup > kk + 1) exit
+            kd = 1
+            do while (sigdia(kd) < sigint(kup))
+              kd = kd + 1
+            end do
+            klo = kup + 1
+            outer2: do kd = kd,kk
+              do while (sigint(klo) == nf90_fill_double .or. &
+                        sigint(klo) < max(sigdia(kd),sigint(kup) + sigeps))
+                if (sigint(klo) /= nf90_fill_double .and. &
+                    sigint(klo) >= sigint(kup) + sigeps) kup = klo
+                klo = klo + 1
+                if (klo > kk + 1) exit outer2
+              end do
+              vcumdia(i,j,kd) = ( (sigint(klo) - sigdia(kd ))*vcumint(kup) &
+                                + (sigdia(kd ) - sigint(kup))*vcumint(klo)) &
+                                /(sigint(klo) - sigint(kup))
+            end do outer2
+
           end do
         end do
       end do
       !$omp end parallel do
+
       do k = 1,kk
-        !$omp parallel do private(l,i)
-        do j = 1,jj
-          do l = 1,isu(j)
-            do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-              if (k > 2) then
-                ucum(i,j) = ucum(i,j)+r*phylyr(i,j,k,ACC_UIND)
-              end if
-              if (k == min(kmxl(i-1,j),kmxl(i,j))) then
-                ucum(i,j) = ucum(i,j)+r*(phylyr(i,j,1,ACC_UIND) &
-                     +phylyr(i,j,2,ACC_UIND))
-              end if
-            end do
-          end do
-          do l = 1,isv(j)
-            do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-              if (k > 2) then
-                vcum(i,j) = vcum(i,j)+r*phylyr(i,j,k,ACC_VIND)
-              end if
-              if (k == min(kmxl(i,j-1),kmxl(i,j))) then
-                vcum(i,j) = vcum(i,j)+r*(phylyr(i,j,1,ACC_VIND) &
-                     +phylyr(i,j,2,ACC_VIND))
-              end if
-            end do
-          end do
-        end do
-        !$omp end parallel do
-        call xcaget(ucumg,ucum,1)
-        call xcaget(vcumg,vcum,1)
+        call xcaget(ucumg,ucumdia(1-nbdy,1-nbdy,k),1)
+        call xcaget(vcumg,vcumdia(1-nbdy,1-nbdy,k),1)
         if (mnproc == 1) then
           do l = 1,lmax
             ! Accumulate meridional fluxes in seperate ocean regions
             do o = 1,ocn_nreg
-              mflx_or(l,o) = 0.
+              mflx_or(l,o) = nf90_fill_double
             end do
             do s = 1,nind(l)
               i = iind(s,l)
               j = jind(s,l)
               o = oflg(i,j)
-              mflx_or(l,o) = mflx_or(l,o)&
-                            +uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
+              if     (ucumg(i,j) /= nf90_fill_double .and. & 
+                      vcumg(i,j) /= nf90_fill_double) then
+                if (mflx_or(l,o) == nf90_fill_double) then
+                  mflx_or(l,o) = uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
+                else
+                  mflx_or(l,o) = mflx_or(l,o) &
+                                +uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
+                end if
+              elseif (ucumg(i,j) /= nf90_fill_double) then
+                if (mflx_or(l,o) == nf90_fill_double) then
+                  mflx_or(l,o) = uflg(s,l)*ucumg(i,j)
+                else
+                  mflx_or(l,o) = mflx_or(l,o)+uflg(s,l)*ucumg(i,j)
+                end if
+              elseif (vcumg(i,j) /= nf90_fill_double) then
+                if (mflx_or(l,o) == nf90_fill_double) then
+                  mflx_or(l,o) = vflg(s,l)*vcumg(i,j)
+                else
+                  mflx_or(l,o) = mflx_or(l,o)+vflg(s,l)*vcumg(i,j)
+                end if
+              end if
             end do
             ! Add together the ocean regions that belong to the regions
             ! of meridional flux diagnostics and apply a fill value
             ! outside the regions latitude bounds or when no values have
             ! been accumulated
             do m = 1,mer_nreg
-              if (mtlat(l) < mer_minlat(m).or. &
-                  mtlat(l) > mer_maxlat(m)) then
-                mflx_mr(l,m) = nf90_fill_double
-              else
-                mflx_mr(l,m) = 0.
+              mflx_mr(l,m) = nf90_fill_double
+              if (mtlat(l) >= mer_minlat(m) .and. &
+                  mtlat(l) <= mer_maxlat(m)) then
                 if (mer_regflg(m,1) == 0) then
                   do o = 1,ocn_nreg
-                    mflx_mr(l,m) = mflx_mr(l,m)+mflx_or(l,o)
+                    if (mflx_or(l,o) /= nf90_fill_double) then
+                      if (mflx_mr(l,m) == nf90_fill_double) then
+                        mflx_mr(l,m) = mflx_or(l,o)
+                      else
+                        mflx_mr(l,m) = mflx_mr(l,m)+mflx_or(l,o)
+                      end if
+                    end if
                   end do
                 else
                   do n = 1,mer_nflg(m)
                     o = mer_regflg(m,n)
-                    mflx_mr(l,m) = mflx_mr(l,m)+mflx_or(l,o)
+                    if (mflx_or(l,o) /= nf90_fill_double) then
+                      if (mflx_mr(l,m) == nf90_fill_double) then
+                        mflx_mr(l,m) = mflx_or(l,o)
+                      else
+                        mflx_mr(l,m) = mflx_mr(l,m)+mflx_or(l,o)
+                      end if
+                    end if
                   end do
-                end if
-                if (abs(mflx_mr(l,m)-mflx_last_mr(l,m)) < &
-                     1.e5*epsilp) then
-                  mflx_last_mr(l,m) = mflx_mr(l,m)
-                  mflx_mr(l,m) = nf90_fill_double
-                else
-                  mflx_last_mr(l,m) = mflx_mr(l,m)
                 end if
               end if
             end do
@@ -4221,9 +4375,9 @@ contains
       end do
     end do
 
-    ! Compute overturning stream function at levitus level interfaces
-    ! Prepare depth mask
+    ! Compute overturning stream function at levitus levels
 
+    ! Prepare depth mask
     if (iniflg) call xcaget(depthst,depths,1)
     if (iniflg.and.mnproc == 1) then
       do l = 1,lmax
@@ -4257,15 +4411,15 @@ contains
     do nfld = 1,3
 
       if     (nfld == 1) then
-        if (ACC_MMFLXD(iogrp) == 0) cycle
+        if (MSC_MMFLXD(iogrp) == 0) cycle
         ACC_UIND = ACC_UFLXLVL(iogrp)
         ACC_VIND = ACC_VFLXLVL(iogrp)
       else if (nfld == 2) then
-        if (ACC_MMFTDD(iogrp) == 0) cycle
+        if (MSC_MMFTDD(iogrp) == 0) cycle
         ACC_UIND = ACC_UMFLTDLVL(iogrp)
         ACC_VIND = ACC_VMFLTDLVL(iogrp)
       else if (nfld == 3) then
-        if (ACC_MMFSMD(iogrp) == 0) cycle
+        if (MSC_MMFSMD(iogrp) == 0) cycle
         ACC_UIND = ACC_UMFLSMLVL(iogrp)
         ACC_VIND = ACC_VMFLSMLVL(iogrp)
       else
@@ -4274,35 +4428,74 @@ contains
         stop '(diamer)'
       end if
 
-      !$omp parallel do private(l,i)
-      do j = 1,jj
-        do l = 1,isu(j)
-          do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-            ucum(i,j) = 0.
-          end do
-        end do
-        do l = 1,isv(j)
-          do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-            vcum(i,j) = 0.
-          end do
-        end do
-      end do
-      !$omp end parallel do
       do k = 1,ddm
-        !$omp parallel do private(l,i)
-        do j = 1,jj
-          do l = 1,isu(j)
-            do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
-              ucum(i,j) = ucum(i,j)+r*phylvl(i,j,k,ACC_UIND)
+        if     (k == 1) then
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isu(j)
+              do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
+                ucum(i,j) = 0.
+              end do
+            end do
+            do l = 1,isv(j)
+              do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
+                vcum(i,j) = 0.
+              end do
             end do
           end do
-          do l = 1,isv(j)
-            do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
-              vcum(i,j) = vcum(i,j)+r*phylvl(i,j,k,ACC_VIND)
+          !$omp end parallel do
+        elseif (k == 2) then
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isu(j)
+              do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
+                ucum(i,j) = r*(    phylvl(i,j,1,ACC_UIND) &
+                              + .5*phylvl(i,j,2,ACC_UIND))
+              end do
+            end do
+            do l = 1,isv(j)
+              do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
+                vcum(i,j) = r*(    phylvl(i,j,1,ACC_VIND) &
+                              + .5*phylvl(i,j,2,ACC_VIND))
+              end do
             end do
           end do
-        end do
-        !$omp end parallel do
+          !$omp end parallel do
+        elseif (k == ddm) then
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isu(j)
+              do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
+                ucum(i,j) = ucum(i,j) + r*(.5*phylvl(i,j,ddm-1,ACC_UIND) &
+                                          +   phylvl(i,j,ddm  ,ACC_UIND))
+              end do
+            end do
+            do l = 1,isv(j)
+              do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
+                vcum(i,j) = vcum(i,j) + r*(.5*phylvl(i,j,ddm-1,ACC_VIND) &
+                                          +   phylvl(i,j,ddm  ,ACC_VIND))
+              end do
+            end do
+          end do
+          !$omp end parallel do
+        else
+          !$omp parallel do private(l,i)
+          do j = 1,jj
+            do l = 1,isu(j)
+              do i = max(1,ifu(j,l)),min(ii,ilu(j,l))
+                ucum(i,j) = ucum(i,j) + .5*r*(phylvl(i,j,k-1,ACC_UIND) &
+                                             +phylvl(i,j,k  ,ACC_UIND))
+              end do
+            end do
+            do l = 1,isv(j)
+              do i = max(1,ifv(j,l)),min(ii,ilv(j,l))
+                vcum(i,j) = vcum(i,j) + .5*r*(phylvl(i,j,k-1,ACC_VIND) &
+                                             +phylvl(i,j,k  ,ACC_VIND))
+              end do
+            end do
+          end do
+          !$omp end parallel do
+        endif
         call xcaget(ucumg,ucum,1)
         call xcaget(vcumg,vcum,1)
         if (mnproc == 1) then
@@ -4316,7 +4509,7 @@ contains
               j = jind(s,l)
               o = oflg(i,j)
               mflx_or(l,o) = mflx_or(l,o) &
-                   +uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
+                            +uflg(s,l)*ucumg(i,j)+vflg(s,l)*vcumg(i,j)
             end do
             ! Add together the ocean regions that belong to the regions
             ! of meridional flux diagnostics and apply a fill value
@@ -5720,6 +5913,7 @@ contains
 
     call inilyr(ACC_SALN(iogrp),'p',0.)
     call inilyr(ACC_TEMP(iogrp),'p',0.)
+    call inilyr(ACC_SIGMA(iogrp),'p',0.)
     call inilyr(ACC_DP(iogrp),'p',0.)
     call inilyr(ACC_DZ(iogrp),'p',0.)
     call inilyr(ACC_BFSQ(iogrp),'p',0.)
@@ -6486,7 +6680,7 @@ contains
 
     ! Local variables
     integer :: isize_lyr,nt,nat,km
-    character :: trcnm*80,trcnml*80,dimslyr*100
+    character :: trcnm*80,trcnml*80
 
     call ncdefvar('time','time',ndouble,0)
     call ncattr('long_name','time')
@@ -6495,14 +6689,23 @@ contains
     if (irec == 1) then
       ! define sigma levels
       if (vcoord_tag /= vcoord_isopyc_bulkml) then
-        call ncdefvar('sigma','layer',ndouble,8)
+        call ncdefvar('sigref','layer',ndouble,8)
+        call ncattr('long_name','Reference potential density')
+        call ncattr('standard_name','sea_water_sigma_theta')
+        call ncattr('units','kg m-3')
+        call ncattr('positive','down')
+        call ncdefvar('sigma','sigma',ndouble,8)
+        call ncattr('long_name','Potential density')
+        call ncattr('standard_name','sea_water_sigma_theta')
+        call ncattr('units','kg m-3')
+        call ncattr('positive','down')
       else
         call ncdefvar('sigma','sigma',ndouble,8)
+        call ncattr('long_name','Potential density')
+        call ncattr('standard_name','sea_water_sigma_theta')
+        call ncattr('units','kg m-3')
+        call ncattr('positive','down')
       end if
-      call ncattr('long_name','Potential density')
-      call ncattr('standard_name','sea_water_sigma_theta')
-      call ncattr('units','kg m-3')
-      call ncattr('positive','down')
       ! define zlevel
       call ncdefvar('depth','depth',ndouble,8)
       call ncattr('long_name','z level')
@@ -6510,11 +6713,11 @@ contains
       call ncattr('positive','down')
       call ncattr('bounds','depth_bnds')
       call ncdefvar('depth_bnds','bounds depth',ndouble,8)
-      if (MSC_MMFLXL(iogrp)+MSC_MMFLXD(iogrp)+MSC_MMFTDL(iogrp) &
-           +MSC_MMFSML(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
-           +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
-           +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
-           +msc_msfsm (iogrp)+msc_msfld (iogrp) /= 0) then
+      if (MSC_MMFLXL(iogrp)+MSC_MMFTDL(iogrp)+MSC_MMFSML(iogrp) &
+         +MSC_MMFLXD(iogrp)+MSC_MMFTDD(iogrp)+MSC_MMFSMD(iogrp) &
+         +MSC_MHFLX (iogrp)+MSC_MHFTD (iogrp)+MSC_MHFSM (iogrp) &
+         +MSC_MHFLD (iogrp)+MSC_MSFLX (iogrp)+MSC_MSFTD (iogrp) &
+         +msc_msfsm (iogrp)+msc_msfld (iogrp) /= 0) then
         call ncdefvar('lat','lat',ndouble,8)
         call ncattr('long_name','Latitude')
         call ncattr('standard_name','latitude')
@@ -7100,49 +7303,40 @@ contains
     endif
 
     ! define meridional transports
-    if (vcoord_tag /= vcoord_isopyc_bulkml) then
-      dimslyr='lat layer region time'
-    else
-      dimslyr='lat sigma region time'
-    end if
     if (msc_mmflxl(iogrp) /= 0) then
-      call ncdefvar('mmflxl',dimslyr,ndouble,8)
+      call ncdefvar('mmflxl','lat sigma region time',ndouble,8)
       call ncattr('long_name', &
-           'Overturning stream-function on layers')
+                  'Overturning streamfunction')
+      call ncattr('units','kg s-1')
+    end if
+    if (msc_mmftdl(iogrp) /= 0) then
+      call ncdefvar('mmftdl','lat sigma region time',ndouble,8)
+      call ncattr('long_name', &
+                  'Overturning streamfunction due to thickness diffusion')
+      call ncattr('units','kg s-1')
+    end if
+    if (msc_mmfsml(iogrp) /= 0) then
+      call ncdefvar('mmfsml','lat sigma region time',ndouble,8)
+      call ncattr('long_name', &
+                  'Overturning streamfunction due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
     if (msc_mmflxd(iogrp) /= 0) then
       call ncdefvar('mmflxd','lat depth region time',ndouble,8)
       call ncattr('long_name', &
-           'Overturning stream-function on z-levels')
-      call ncattr('units','kg s-1')
-    end if
-    if (msc_mmftdl(iogrp) /= 0) then
-      call ncdefvar('mmftdl',dimslyr,ndouble,8)
-      call ncattr('long_name', &
-           'Overturning stream-function due to thickness diffusion '// &
-           'on layers')
-      call ncattr('units','kg s-1')
-    end if
-    if (msc_mmfsml(iogrp) /= 0) then
-      call ncdefvar('mmfsml',dimslyr,ndouble,8)
-      call ncattr('long_name', &
-           'Overturning stream-function due to submesoscale transport '// &
-           'on layers')
+                  'Overturning streamfunction')
       call ncattr('units','kg s-1')
     end if
     if (msc_mmftdd(iogrp) /= 0) then
       call ncdefvar('mmftdd','lat depth region time',ndouble,8)
       call ncattr('long_name', &
-           'Overturning stream-function due to thickness diffusion '// &
-           'on z-levels')
+                  'Overturning streamfunction due to thickness diffusion')
       call ncattr('units','kg s-1')
     end if
     if (msc_mmfsmd(iogrp) /= 0) then
       call ncdefvar('mmfsmd','lat depth region time',ndouble,8)
       call ncattr('long_name', &
-           'Overturning stream-function due to submesoscale transport '// &
-           'on z-levels')
+                  'Overturning streamfunction due to submesoscale transport')
       call ncattr('units','kg s-1')
     end if
     if (msc_mhflx(iogrp) /= 0) then

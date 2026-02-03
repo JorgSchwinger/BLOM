@@ -89,7 +89,7 @@ module mod_restart
                                  acc_vtfltd, acc_vtflsm, acc_vtflld, &
                                  acc_vsfltd, acc_vsflsm, acc_vsflld, acc_vvel, &
                                  acc_wflx, acc_wflx2, acc_avdsg, acc_dpvor, &
-                                 acc_tke, acc_gls_psi,acc_utillyr, &
+                                 acc_tke, acc_gls_psi, acc_sigma, acc_utillyr, &
                                  acc_bfsqlvl, acc_difdialvl, acc_difvmolvl, &
                                  acc_difvholvl, acc_difvsolvl, acc_difintlvl, &
                                  acc_difisolvl, acc_dzlvl, acc_salnlvl, &
@@ -103,12 +103,7 @@ module mod_restart
                                  acc_vsfltdlvl, acc_vsflsmlvl, acc_vsflldlvl, &
                                  acc_vvellvl, acc_wflxlvl, acc_wflx2lvl, &
                                  acc_pvlvl, acc_tkelvl, acc_gls_psilvl, &
-                                 acc_uflxold, acc_vflxold, acc_utillvl, &
-                                 acc_mmflxl, acc_mmflxd, acc_mmftdl, &
-                                 acc_mmfsml, acc_mmftdd, acc_mmfsmd, &
-                                 acc_mhflx, acc_mhftd, acc_mhfsm, acc_mhfld, &
-                                 acc_msflx, acc_msftd, acc_msfsm, acc_msfld, &
-                                 acc_voltr
+                                 acc_uflxold, acc_vflxold, acc_utillvl
    use mod_forcing,        only: ditflx, disflx, sprfac, tflxdi, sflxdi, &
                                  nflxdi, prfac, eiacc, pracc, flxco2, flxdms, &
                                  flxbrf, flxn2o,flxnh3, ustarb, wstar3, &
@@ -897,6 +892,9 @@ contains
             if (ACC_TEMP(n) /= 0) &
                call defwrtfld('temp_phy'//c2, trim(c5p)//' kk time', &
                               phylyr(1-nbdy,1-nbdy,1,ACC_TEMP(n)), ip, defmode)
+            if (ACC_SIGMA(n) /= 0) &
+               call defwrtfld('sigma_phy'//c2, trim(c5p)//' kk time', &
+                              phylyr(1-nbdy,1-nbdy,1,ACC_SIGMA(n)), ip, defmode)
             if (ACC_DP(n) /= 0) &
                call defwrtfld('dp_phy'//c2, trim(c5p)//' kk time', &
                               phylyr(1-nbdy,1-nbdy,1,ACC_DP(n)), ip, defmode)
@@ -2290,6 +2288,9 @@ contains
                if (ACC_TEMP(n) /= 0) &
                   call readfld('temp_phy'//c2, p_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_TEMP(n)), ip)
+               if (ACC_SIGMA(n) /= 0) &
+                  call readfld('sigma_phy'//c2, r_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_SIGMA(n)), ip)
                if (ACC_DP(n) /= 0) &
                   call readfld('dp_phy'//c2, p_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_DP(n)), ip)

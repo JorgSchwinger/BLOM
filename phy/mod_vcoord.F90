@@ -40,7 +40,7 @@ module mod_vcoord
 
    ! Derived data types.
 
-   type :: sigref_fun_spec_type
+   type :: sigma_fun_spec_type
 
      real(r8) :: &
         dsdz_bot, & ! Derivative of sigma with respect to z at Bezier point 4
@@ -58,7 +58,7 @@ module mod_vcoord
                     ! covering the z-range [z_bot, 1] [].
         s_bot       ! Sigma value of parabola at z = 1 [kg m-3].
       
-   end type sigref_fun_spec_type
+   end type sigma_fun_spec_type
 
    ! Parameters:
    real(r8), parameter :: &
@@ -81,7 +81,8 @@ module mod_vcoord
    character(len = 80) :: &
       vcoord_type            = 'isopyc_bulkml', &
       sigref_spec            = 'inicon', &
-      plevel_spec            = 'inflation'
+      plevel_spec            = 'inflation', &
+      sigdia_spec            = 'inicon'
    real(r8) :: &
       dpmin_surface          = 1.5_r8, &
       dpmin_inflation_factor = 1._r8, &
@@ -90,11 +91,13 @@ module mod_vcoord
       sra_param_ts2          = 10._r8, &
       sra_massfrac_bot       = .01, &
       sra_massfrac_eps       = .0001
-   type(sigref_fun_spec_type) :: &
-      sigref_fun_spec
+   type(sigma_fun_spec_type) :: &
+      sigref_fun_spec, &
+      sigdia_fun_spec
    real(r8), dimension(kdm_max) :: &
       sigref                 = spval, &
-      plevel                 = spval
+      plevel                 = spval, &
+      sigdia                 = spval
    logical :: &
       sigref_adaption        = .false.
 
@@ -131,13 +134,13 @@ module mod_vcoord
    integer :: &
       sra_accnum                  ! Number of accumulated reference potential
                                   ! density parameters.
-   type(sigref_fun_spec_type) :: &
+   type(sigma_fun_spec_type) :: &
       sigref_fun_spec_old, &      ! 
       sigref_fun_spec_new
 
    public :: vcoord_type, vcoord_tag, vcoord_isopyc_bulkml, &
              vcoord_cntiso_hybrid, vcoord_plevel, sra_tlev_num, sigref_spec, &
-             sigmar, sigref_fun_spec, sigref, plevel, sigref_adaption, &
+             sigmar, sigref_fun_spec, sigref, plevel, sigdia, sigref_adaption, &
              sra_massdc_colsum, sra_sigmassdc_colsum, sra_massgs_colsum, &
              sra_dpml_sum, sra_sigmlb_sum, sra_dpml_clim, sra_sigmlb_clim, &
              sra_sigref_sum, sra_s_bot_sum, sra_tlev_accnum, sra_accnum, &
@@ -165,18 +168,18 @@ contains
 
    end function cubic_root
 
-   pure function sigref_fun(fun_spec, kmax) result(sigref)
+   pure function sigma_fun(fun_spec, kmax) result(sigfun)
    ! ---------------------------------------------------------------------------
    ! Return reference potential densities based on a functional expression
-   ! specified by the parameters in fun_spec of type sigref_fun_spec_type. The
+   ! specified by the parameters in fun_spec of type sigma_fun_spec_type. The
    ! functional expression consist of a cubic Bezier curve matched with
    ! parabolas at the top and bottom of the index range.
    ! ---------------------------------------------------------------------------
 
-      type(sigref_fun_spec_type), intent(in) :: fun_spec
+      type(sigma_fun_spec_type), intent(in) :: fun_spec
       integer, intent(in) :: kmax
 
-      real(r8), dimension(kmax) :: sigref
+      real(r8), dimension(kmax) :: sigfun
 
       real(r8) :: sp2, sp3, zp1, zp4, az, bz, cz, dz, as, bs, cs, ds, &
                   t, z, f0, ft, dft, q1, q2, a, b, c
@@ -219,7 +222,7 @@ contains
          z = real(k - 1, r8)/real(kmax - 1, r8)
          dz = zp1 - z
          t = cubic_root(az, bz, cz, dz, t, t_tol)
-         sigref(k) = ((as*t + bs)*t + cs)*t + ds
+         sigfun(k) = ((as*t + bs)*t + cs)*t + ds
       enddo
 
       ! Compute reference sigma values in the range [0, z_top] from a parabola
@@ -238,7 +241,7 @@ contains
          c = f0
          do k = 1, ktt
             z = real(k - 1, r8)/real(kmax - 1, r8)
-            sigref(k) = (a*z + b)*z + c
+            sigfun(k) = (a*z + b)*z + c
          enddo
       endif
 
@@ -258,11 +261,11 @@ contains
          c = (((f0 + dft)*fun_spec%z_bot - 2._r8*ft - dft)*fun_spec%z_bot + ft)*q1
          do k = ktb, kmax
             z = real(k - 1, r8)/real(kmax - 1, r8)
-            sigref(k) = (a*z + b)*z + c
+            sigfun(k) = (a*z + b)*z + c
          enddo
       endif
 
-   end function sigref_fun
+   end function sigma_fun
 
    function sra_cost(plevel_test, sigref_test) result(cost)
    ! ---------------------------------------------------------------------------
@@ -321,28 +324,28 @@ contains
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(kdm), intent(in) :: plevel_test
-      type(sigref_fun_spec_type), intent(in) :: sigref_fun_spec_base
+      type(sigma_fun_spec_type), intent(in) :: sigref_fun_spec_base
       real(r8), dimension(2), intent(in) :: x, dx
 
       real(r8), dimension(2) :: cost_grad
 
-      type(sigref_fun_spec_type) :: sigref_fun_spec_test
+      type(sigma_fun_spec_type) :: sigref_fun_spec_test
       real(r8) :: cost_m, cost_p
 
       sigref_fun_spec_test = sigref_fun_spec_base
 
       sigref_fun_spec_test%zp2 = x(2)
       sigref_fun_spec_test%sp1 = x(1) - .5_r8*dx(1)
-      cost_m  = sra_cost(plevel_test, sigref_fun(sigref_fun_spec_test, kdm))
+      cost_m  = sra_cost(plevel_test, sigma_fun(sigref_fun_spec_test, kdm))
       sigref_fun_spec_test%sp1 = x(1) + .5_r8*dx(1)
-      cost_p  = sra_cost(plevel_test, sigref_fun(sigref_fun_spec_test, kdm))
+      cost_p  = sra_cost(plevel_test, sigma_fun(sigref_fun_spec_test, kdm))
       cost_grad(1) = (cost_p - cost_m)/dx(1)
 
       sigref_fun_spec_test%sp1 = x(1)
       sigref_fun_spec_test%zp2 = x(2) - .5_r8*dx(2)
-      cost_m  = sra_cost(plevel_test, sigref_fun(sigref_fun_spec_test, kdm))
+      cost_m  = sra_cost(plevel_test, sigma_fun(sigref_fun_spec_test, kdm))
       sigref_fun_spec_test%zp2 = x(2) + .5_r8*dx(2)
-      cost_p  = sra_cost(plevel_test, sigref_fun(sigref_fun_spec_test, kdm))
+      cost_p  = sra_cost(plevel_test, sigma_fun(sigref_fun_spec_test, kdm))
       cost_grad(2) = (cost_p - cost_m)/dx(2)
 
    end function sra_cost_grad
@@ -387,7 +390,7 @@ contains
                             +          wgt_tf2 *s_bot_tf0
 
       ! Obtain updated reference potential densities.
-      sigref(1:kdm) = sigref_fun(sigref_fun_spec, kdm)
+      sigref(1:kdm) = sigma_fun(sigref_fun_spec, kdm)
       !$omp parallel do private(i, k)
       do j = 1-nbdy, jj+nbdy
          do k = 1, kk
@@ -589,7 +592,7 @@ contains
                   massfrac_bot, sp4_new, s_bot_new, cost, adam_beta1pt, &
                   adam_beta2pt
       integer :: i, j, l, tlev, kdc, ktb
-      type(sigref_fun_spec_type) :: sigref_fun_spec_test
+      type(sigma_fun_spec_type) :: sigref_fun_spec_test
 
       ! Copy reference potential density function specifications from new to
       ! old.
@@ -734,7 +737,7 @@ contains
       ! pressure levels and simulated mixed layer depth is minimized.
       ! ------------------------------------------------------------------------
 
-      cost = sra_cost(plevel, sigref_fun(sigref_fun_spec_old, kdm))
+      cost = sra_cost(plevel, sigma_fun(sigref_fun_spec_old, kdm))
       if (mnproc == 1) &
          write(lp,'(a,f15.7)') ' sra_optimize: cost prev. optim. sigref:', cost
       cost = sra_cost(plevel, sigref)
@@ -768,7 +771,7 @@ contains
          if ( mod(i, 100) == 0) then
             sigref_fun_spec_test%sp1 = x(1)
             sigref_fun_spec_test%zp2 = x(2)
-            cost = sra_cost(plevel, sigref_fun(sigref_fun_spec_test, kdm))
+            cost = sra_cost(plevel, sigma_fun(sigref_fun_spec_test, kdm))
             if (mnproc == 1) &
                write(lp,'(a,3e15.7)') ' sra_optimize: sp1, zp2, cost:', &
                                       x(1), x(2), cost
@@ -813,7 +816,8 @@ contains
 
       namelist /vcoord/ &
          vcoord_type, dpmin_surface, dpmin_inflation_factor, &
-         sigref_spec, plevel_spec, sigref_fun_spec, sigref, plevel, &
+         sigref_spec, plevel_spec, sigdia_spec, &
+         sigref_fun_spec, sigdia_fun_spec, sigref, plevel, sigdia, &
          sigref_adaption, sra_clim_ts, sra_param_ts1, sra_param_ts2, &
          sra_massfrac_bot, sra_massfrac_eps
 
@@ -850,6 +854,7 @@ contains
          call xcbcst(dpmin_inflation_factor)
          call xcbcst(sigref_spec)
          call xcbcst(plevel_spec)
+         call xcbcst(sigdia_spec)
          call xcbcst(sigref_fun_spec%dsdz_bot)
          call xcbcst(sigref_fun_spec%sp1)
          call xcbcst(sigref_fun_spec%zp2)
@@ -859,8 +864,18 @@ contains
          call xcbcst(sigref_fun_spec%s_top)
          call xcbcst(sigref_fun_spec%z_bot)
          call xcbcst(sigref_fun_spec%s_bot)
+         call xcbcst(sigdia_fun_spec%dsdz_bot)
+         call xcbcst(sigdia_fun_spec%sp1)
+         call xcbcst(sigdia_fun_spec%zp2)
+         call xcbcst(sigdia_fun_spec%zp3)
+         call xcbcst(sigdia_fun_spec%sp4)
+         call xcbcst(sigdia_fun_spec%z_top)
+         call xcbcst(sigdia_fun_spec%s_top)
+         call xcbcst(sigdia_fun_spec%z_bot)
+         call xcbcst(sigdia_fun_spec%s_bot)
          call xcbcst(sigref)
          call xcbcst(plevel)
+         call xcbcst(sigdia)
          call xcbcst(sigref_adaption)
          call xcbcst(sra_clim_ts)
          call xcbcst(sra_param_ts1)
@@ -873,9 +888,11 @@ contains
          write (lp,*) '  vcoord_type =            ', trim(vcoord_type)
          write (lp,*) '  dpmin_surface =          ', dpmin_surface
          write (lp,*) '  dpmin_inflation_factor = ', dpmin_inflation_factor
-         write (lp,*) '  sigref_fun_spec =        ', sigref_fun_spec
          write (lp,*) '  sigref_spec =            ', trim(sigref_spec)
          write (lp,*) '  plevel_spec =            ', trim(plevel_spec)
+         write (lp,*) '  sigdia_spec =            ', trim(sigdia_spec)
+         write (lp,*) '  sigref_fun_spec =        ', sigref_fun_spec
+         write (lp,*) '  sigdia_fun_spec =        ', sigdia_fun_spec
          write (lp,*) '  sigref_adaption =        ', sigref_adaption
          write (lp,*) '  sra_clim_ts =            ', sra_clim_ts
          write (lp,*) '  sra_param_ts1 =          ', sra_param_ts1
@@ -906,7 +923,7 @@ contains
          select case (trim(sigref_spec))
             case ('inicon')
             case ('function')
-               sigref(1:kdm) = sigref_fun(sigref_fun_spec,kdm)
+               sigref(1:kdm) = sigma_fun(sigref_fun_spec,kdm)
             case ('namelist')
                k = 1
                do while (sigref(k) /= spval)
@@ -956,6 +973,37 @@ contains
                                     trim(plevel_spec), ' is unsupported!'
                call xcstop('(readnml_vcoord)')
                stop '(readnml_vcoord)'
+         end select
+         select case (trim(sigdia_spec))
+            case ('inicon')
+               if (trim(sigref_spec) /= 'inicon') then
+                  if (mnproc == 1) &
+                     write(lp,*) 'readnml_vcoord: sigdia_spec = inicon '// &
+                                 'requires sigref_spec = inicon'
+                  call xcstop('(readnml_vcoord)')
+                         stop '(readnml_vcoord)'
+               endif
+            case ('function')
+               sigdia(1:kdm) = sigma_fun(sigdia_fun_spec,kdm)
+            case ('namelist')
+               k = 1
+               do while (sigdia(k) /= spval)
+                  k = k + 1
+                  if (k > kdm_max) exit
+               enddo
+               if (k /= kdm + 1) then
+                  if (mnproc == 1) &
+                     write (lp,*) 'readnml_vcoord: number of sigdia values '// &
+                                  'does not match vertical dimension!'
+                  call xcstop('(readnml_vcoord)')
+                         stop '(readnml_vcoord)'
+               endif
+            case default
+               if (mnproc == 1) &
+                  write (lp,'(3a)') ' readnml_vcoord: sigdia_spec = ', &
+                                    trim(sigdia_spec), ' is unsupported!'
+               call xcstop('(readnml_vcoord)')
+                      stop '(readnml_vcoord)'
          end select
       endif
 
@@ -1011,8 +1059,8 @@ contains
 
    subroutine extract_sigref
    ! ---------------------------------------------------------------------------
-   ! In case it is not otherwise specified, extract reference potential density
-   ! vector representative of the dominating ocean domain.
+   ! In case not otherwise specified, extract reference potential density vector
+   ! representative of the dominating ocean domain.
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(itdm,jtdm) :: tmp2d
@@ -1048,6 +1096,8 @@ contains
          do k = 1, kk
             call xceget(sigref(k),sigmar(1-nbdy,1-nbdy,k),i1,j1)
          enddo
+         if (vcoord_tag == vcoord_isopyc_bulkml .or. &
+             trim(sigdia_spec) == 'inicon') sigdia(1:kk) = sigref(1:kk)
       endif
       if (mnproc == 1) then
          write(lp,*) 'sigma layers = ',sigref(1:kk)
