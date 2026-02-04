@@ -2239,7 +2239,7 @@
     <desc>liquid precipitation [kg m-2 s-1]</desc>
   </entry>
 
-  <entry id="h2d_maxmld">
+  <entry id="h2d_maxbld">
     <type>integer(3)</type>
     <category>diaphy</category>
     <group>diaphy</group>
@@ -2249,7 +2249,7 @@
       <value is_test="yes" empty_hist="yes">0,0,0</value>
       <value blom_output_size="spinup">0,4,0</value>
     </values>
-    <desc>maximum mixed layer depth [m]</desc>
+    <desc>maximum boundary layer depth [m]</desc>
   </entry>
 
   <entry id="h2d_bld">
