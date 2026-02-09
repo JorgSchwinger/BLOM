@@ -89,7 +89,9 @@ module mod_restart
                                  acc_vtfltd, acc_vtflsm, acc_vtflld, &
                                  acc_vsfltd, acc_vsflsm, acc_vsflld, acc_vvel, &
                                  acc_wflx, acc_wflx2, acc_avdsg, acc_dpvor, &
-                                 acc_tke, acc_gls_psi, acc_sigma, acc_utillyr, &
+                                 acc_tke, acc_gls_psi, acc_umfll, acc_umfltdl, &
+                                 acc_umflsml, acc_vmfll, acc_vmfltdl, &
+                                 acc_vmflsml, acc_utillyr, &
                                  acc_bfsqlvl, acc_difdialvl, acc_difvmolvl, &
                                  acc_difvholvl, acc_difvsolvl, acc_difintlvl, &
                                  acc_difisolvl, acc_dzlvl, acc_salnlvl, &
@@ -850,6 +852,24 @@ contains
             if (ACC_VMFLSM(n) /= 0) &
                call defwrtfld('vmflsm_phy'//c2, trim(c5v)//' kk time', &
                               phylyr(1-nbdy,1-nbdy,1,ACC_VMFLSM(n)), ivv, defmode)
+            if (ACC_UMFLL(n) /= 0) &
+               call defwrtfld('umfll_phy'//c2, trim(c5u)//' kk time', &
+                              phylyr(1-nbdy,1-nbdy,1,ACC_UMFLL(n)), iuu, defmode)
+            if (ACC_VMFLL(n) /= 0) &
+               call defwrtfld('vmfll_phy'//c2, trim(c5v)//' kk time', &
+                              phylyr(1-nbdy,1-nbdy,1,ACC_VMFLL(n)), ivv, defmode)
+            if (ACC_UMFLTDL(n) /= 0) &
+               call defwrtfld('umfltdl_phy'//c2, trim(c5u)//' kk time', &
+                              phylyr(1-nbdy,1-nbdy,1,ACC_UMFLTDL(n)), iuu, defmode)
+            if (ACC_VMFLTDL(n) /= 0) &
+               call defwrtfld('vmfltdl_phy'//c2, trim(c5v)//' kk time', &
+                              phylyr(1-nbdy,1-nbdy,1,ACC_VMFLTDL(n)), ivv, defmode)
+            if (ACC_UMFLSML(n) /= 0) &
+               call defwrtfld('umflsml_phy'//c2, trim(c5u)//' kk time', &
+                              phylyr(1-nbdy,1-nbdy,1,ACC_UMFLSML(n)), iuu, defmode)
+            if (ACC_VMFLSML(n) /= 0) &
+               call defwrtfld('vmflsml_phy'//c2, trim(c5v)//' kk time', &
+                              phylyr(1-nbdy,1-nbdy,1,ACC_VMFLSML(n)), ivv, defmode)
             if (ACC_UTFLTD(n) /= 0) &
                call defwrtfld('utfltd_phy'//c2, trim(c5u)//' kk time', &
                               phylyr(1-nbdy,1-nbdy,1,ACC_UTFLTD(n)), iuu, defmode)
@@ -892,9 +912,6 @@ contains
             if (ACC_TEMP(n) /= 0) &
                call defwrtfld('temp_phy'//c2, trim(c5p)//' kk time', &
                               phylyr(1-nbdy,1-nbdy,1,ACC_TEMP(n)), ip, defmode)
-            if (ACC_SIGMA(n) /= 0) &
-               call defwrtfld('sigma_phy'//c2, trim(c5p)//' kk time', &
-                              phylyr(1-nbdy,1-nbdy,1,ACC_SIGMA(n)), ip, defmode)
             if (ACC_DP(n) /= 0) &
                call defwrtfld('dp_phy'//c2, trim(c5p)//' kk time', &
                               phylyr(1-nbdy,1-nbdy,1,ACC_DP(n)), ip, defmode)
@@ -2246,6 +2263,24 @@ contains
                if (ACC_VMFLSM(n) /= 0) &
                   call readfld('vmflsm_phy'//c2, lm_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_VMFLSM(n)), ivv)
+               if (ACC_UMFLL(n) /= 0) &
+                  call readfld('umfll_phy'//c2, lm_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_UMFLL(n)), iuu)
+               if (ACC_VMFLL(n) /= 0) &
+                  call readfld('vmfll_phy'//c2, lm_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_VMFLL(n)), ivv)
+               if (ACC_UMFLTDL(n) /= 0) &
+                  call readfld('umfltdl_phy'//c2, lm_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_UMFLTDL(n)), iuu)
+               if (ACC_VMFLTDL(n) /= 0) &
+                  call readfld('vmflsml_phy'//c2, lm_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_VMFLSML(n)), ivv)
+               if (ACC_UMFLSML(n) /= 0) &
+                  call readfld('umflsml_phy'//c2, lm_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_UMFLSML(n)), iuu)
+               if (ACC_VMFLSML(n) /= 0) &
+                  call readfld('vmfltdl_phy'//c2, lm_unitconv, &
+                               phylyr(1-nbdy,1-nbdy,1,ACC_VMFLTDL(n)), ivv)
                if (ACC_UTFLTD(n) /= 0) &
                   call readfld('utfltd_phy'//c2, lm_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_UTFLTD(n)), iuu)
@@ -2288,9 +2323,6 @@ contains
                if (ACC_TEMP(n) /= 0) &
                   call readfld('temp_phy'//c2, p_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_TEMP(n)), ip)
-               if (ACC_SIGMA(n) /= 0) &
-                  call readfld('sigma_phy'//c2, r_unitconv, &
-                               phylyr(1-nbdy,1-nbdy,1,ACC_SIGMA(n)), ip)
                if (ACC_DP(n) /= 0) &
                   call readfld('dp_phy'//c2, p_unitconv, &
                                phylyr(1-nbdy,1-nbdy,1,ACC_DP(n)), ip)

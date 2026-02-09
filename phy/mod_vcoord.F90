@@ -107,6 +107,7 @@ module mod_vcoord
 
    real(r8), dimension(1-nbdy:idm+nbdy,1-nbdy:jdm+nbdy,kdm) :: &
       sigmar, &                   ! Reference potential density [kg m-3].
+      sigint, &                   ! Interface potential density [kg m-3].
       sra_massdc_colsum, &        ! Column sum of mass within density classes
       sra_sigmassdc_colsum        ! Column sum of potential density times mass
                                   ! within density classes.
@@ -140,11 +141,11 @@ module mod_vcoord
 
    public :: vcoord_type, vcoord_tag, vcoord_isopyc_bulkml, &
              vcoord_cntiso_hybrid, vcoord_plevel, sra_tlev_num, sigref_spec, &
-             sigmar, sigref_fun_spec, sigref, plevel, sigdia, sigref_adaption, &
-             sra_massdc_colsum, sra_sigmassdc_colsum, sra_massgs_colsum, &
-             sra_dpml_sum, sra_sigmlb_sum, sra_dpml_clim, sra_sigmlb_clim, &
-             sra_sigref_sum, sra_s_bot_sum, sra_tlev_accnum, sra_accnum, &
-             sigref_fun_spec_old, sigref_fun_spec_new, &
+             sigmar, sigint, sigref_fun_spec, sigref, plevel, sigdia, &
+             sigref_adaption, sra_massdc_colsum, sra_sigmassdc_colsum, &
+             sra_massgs_colsum, sra_dpml_sum, sra_sigmlb_sum, sra_dpml_clim, &
+             sra_sigmlb_clim, sra_sigref_sum, sra_s_bot_sum, sra_tlev_accnum, &
+             sra_accnum, sigref_fun_spec_old, sigref_fun_spec_new, &
              readnml_vcoord, inivar_vcoord, extract_sigref, sigref_adapt
 
 contains
@@ -1054,6 +1055,8 @@ contains
             enddo
          endif
       endif
+
+      sigint(:,:,:) = spval
 
    end subroutine inivar_vcoord
 
