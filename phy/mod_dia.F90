@@ -1382,7 +1382,7 @@ contains
       tmp3d_3(:,:,:) = 0.
 
       !$omp parallel do private(l,i,k,kn,kup_arr,sigup,siglo,sigmin,sigmax, &
-      !$omp                     kup,klo,q,w,)
+      !$omp                     kup,klo,q,w)
       do j = 1,jj
         kup_arr(:) = 2
         do k = 1,kk
@@ -1455,7 +1455,7 @@ contains
       tmp3d_3(:,:,:) = 0.
 
       !$omp parallel do private(l,i,k,kn,kup_arr,sigup,siglo,sigmin,sigmax, &
-      !$omp                     kup,klo,q,w,)
+      !$omp                     kup,klo,q,w)
       do j = 1,jj
         kup_arr(:) = 2
         do k = 1,kk
