@@ -940,7 +940,7 @@ module mod_cmnfld_routines
       real(r8) :: pup, zup, dbup, plo, zlo, dblo
       integer :: i, j, k, l, km
 
-      !$omp parallel do private(l, i, k, km, zup, dbup, plo, zlo, dblo)
+      !$omp parallel do private(l, i, k, km, pup, zup, dbup, plo, zlo, dblo)
       do j = 1, jj
          do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
@@ -1002,10 +1002,11 @@ module mod_cmnfld_routines
 
       integer, intent(in) :: m, n, mm, nn, k1m, k1n
 
-      real(r8) :: dzlo, dzup, sig0ref, zup, pup, dsup, zlo, plo, dslo
+      real(r8) :: dzlo, dzup, sig0ref, pup, zup, dsup, plo, zlo, dslo
       integer :: i, j, k, l, km
 
-      !$omp parallel do private(l, i, k, km, zup, dbup, plo, zlo, dblo)
+      !$omp parallel do private(l, i, k, km, dzlo, dzup, sig0ref, &
+      !$omp                     pup, zup, dsup, plo, zlo, dslo)
       do j = 1, jj
          do l = 1, isp(j)
             do i = max(1, ifp(j,l)), min(ii, ilp(j,l))
@@ -1036,8 +1037,8 @@ module mod_cmnfld_routines
                     /(dzlo - dzup)
               endif
 
-              zup = z(i,j,1) + zrefb04
               pup =  p(i,j,1) + zrefb04*onem
+              zup = z(i,j,1) + zrefb04
               dsup = sig0ref
               do
                  if (dp(i,j,km) > onecm) then

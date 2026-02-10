@@ -1356,6 +1356,7 @@ contains
         /= 0) then
 
       if (vcoord_tag == vcoord_isopyc_bulkml) then
+        !$omp parallel do private(l,i,k,km)
         do j = 1,jj
           do l = 1,isp(j)
             do i = max(1,ifp(j,l)),min(ii,ilp(j,l))
@@ -1371,6 +1372,7 @@ contains
             end do
           end do
         end do
+        !$omp end parallel do
       end if
 
       call xctilr(sigint,1,kk, 1,1, halo_ps)
@@ -1379,6 +1381,8 @@ contains
       tmp3d_2(:,:,:) = 0.
       tmp3d_3(:,:,:) = 0.
 
+      !$omp parallel do private(l,i,k,kn,kup_arr,sigup,siglo,sigmin,sigmax, &
+      !$omp                     kup,klo,q,w,)
       do j = 1,jj
         kup_arr(:) = 2
         do k = 1,kk
@@ -1433,6 +1437,7 @@ contains
           end do
         end do
       end do
+      !$omp end parallel do
 
       ! u-component of mass flux on diagnostic sigma layers [kg*m/s^2]
       call acclyr(ACC_UMFLL,tmp3d_1,dummy,0,'u')
@@ -1449,6 +1454,8 @@ contains
       tmp3d_2(:,:,:) = 0.
       tmp3d_3(:,:,:) = 0.
 
+      !$omp parallel do private(l,i,k,kn,kup_arr,sigup,siglo,sigmin,sigmax, &
+      !$omp                     kup,klo,q,w,)
       do j = 1,jj
         kup_arr(:) = 2
         do k = 1,kk
@@ -1503,6 +1510,7 @@ contains
           end do
         end do
       end do
+      !$omp end parallel do
 
       ! v-component of mass flux on diagnostic sigma layers [kg*m/s^2]
       call acclyr(ACC_VMFLL,tmp3d_1,dummy,0,'v')
