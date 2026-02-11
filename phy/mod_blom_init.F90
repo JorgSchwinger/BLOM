@@ -418,7 +418,7 @@ contains
     call cmnfld1(m,n,mm,nn,k1m,k1n)
 
     ! --------------------------------------------------------------------------
-    ! In case it is not otherwise specified, extract reference potential density
+    ! In case not otherwise specified, extract reference potential density
     ! vector representative of the dominating ocean domain.
     ! --------------------------------------------------------------------------
 

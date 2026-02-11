@@ -31,7 +31,7 @@ module mod_ale_regrid_remap
    use mod_grid,      only: scuy, scvx, scp2, scuxi, scvyi, scp2i
    use mod_vcoord,    only: vcoord_tag, vcoord_isopyc_bulkml, &
                             vcoord_cntiso_hybrid, vcoord_plevel, &
-                            sigmar, plevel
+                            sigmar, sigint, plevel
    use mod_eos,       only: sig, dsigdt, dsigds
    use mod_state,     only: u, v, dp, dpu, dpv, temp, saln, sigma, p, pu, pv, &
                             ub, vb, utflx, vtflx, usflx, vsflx
@@ -110,11 +110,15 @@ module mod_ale_regrid_remap
                                       ! reconstructed potential density, regrid
                                       ! interface pressures so interface
                                       ! potential densities match target values.
-        regrid_method_nudge  = 2      ! Regrid method (vcoord_tag ==
+        regrid_method_nudge  = 2, &   ! Regrid method (vcoord_tag ==
                                       ! vcoord_cntiso_hybrid): Nudge interface
                                       ! pressures to reduce the deviation from
                                       ! the interface reference potential
                                       ! density.
+        it = 1, &                     ! Index of temperature in dual interface
+                                      ! array.
+        is = 2                        ! Index of salinity in dual interface
+                                      ! array.
 
    integer :: ntr_loc
 
@@ -278,7 +282,7 @@ contains
 
    end subroutine regrid_plevel_jslice
 
-   subroutine regrid_cntiso_hybrid_direct_jslice(p_src, p_dst, &
+   subroutine regrid_cntiso_hybrid_direct_jslice(p_src, ksmx, t_srcdi, p_dst, &
                                                  ilb, iub, j, js, nn)
    ! ---------------------------------------------------------------------------
    ! For vcoord == 'cntiso_hybrid' and regrid_method = 'direct', regrid
@@ -288,9 +292,12 @@ contains
    ! ---------------------------------------------------------------------------
 
       real(r8), dimension(:,1-nbdy:), intent(in) :: p_src
+      integer, dimension(1-nbdy:), intent(in) :: ksmx
+      real(r8), dimension(:,:,:,1-nbdy:), intent(in) :: t_srcdi
       real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst
       integer, intent(in) :: ilb, iub, j, js, nn
 
+      real(r8), dimension(2,kdm) :: sig_srcdi
       real(r8), dimension(kdm+1) :: sig_trg
       real(r8), dimension(kdm) :: sig_src
       real(r8) :: beta, sdpsum, smean, dpmin, pku, pku_test, pmin, dpt, &
@@ -304,6 +311,19 @@ contains
 
       do l = 1, isp(j)
          do i = max(ilb, ifp(j,l)), min(iub, ilp(j,l))
+
+            ! Store interface densities for diagnostic purposes.
+            do k = 1, ksmx(i)
+               sig_srcdi(1,k) = sig(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i))
+               sig_srcdi(2,k) = sig(t_srcdi(2,k,it,i), t_srcdi(2,k,is,i))
+            enddo
+            sigint(i,j,1) = sig_srcdi(1,1)
+            do k = 2, ksmx(i)
+               sigint(i,j,k) = .5_r8*(sig_srcdi(2,k-1) + sig_srcdi(1,k))
+            enddo
+            do k = ksmx(i)+1, kk
+               sigint(i,j,k) = sig_srcdi(2,ksmx(i))
+            enddo
 
             ! Copy source and target potential densities into 1D arrays.
             do k = 1, kk
@@ -550,10 +570,6 @@ contains
       real(r8), dimension(:,1-nbdy:), intent(out) :: p_dst, smooth_fac
       integer, intent(in) :: ilb, iub, j
 
-      integer, parameter :: &
-           it = 1, &
-           is = 2
-
       real(r8), dimension(2,kdm) :: sig_srcdi
       integer, dimension(1-nbdy:idm+nbdy) :: kdmx
 
@@ -578,6 +594,15 @@ contains
                sig_srcdi(1,k) = sig(t_srcdi(1,k,it,i), t_srcdi(1,k,is,i))
                sig_srcdi(2,k) = sig(t_srcdi(2,k,it,i), t_srcdi(2,k,is,i))
                sig_max = max(sig_max, sig_srcdi(2,k))
+            enddo
+
+            ! Store interface densities for diagnostic purposes.
+            sigint(i,j,1) = sig_srcdi(1,1)
+            do k = 2, ksmx(i)
+               sigint(i,j,k) = .5_r8*(sig_srcdi(2,k-1) + sig_srcdi(1,k))
+            enddo
+            do k = ksmx(i)+1, kk
+               sigint(i,j,k) = sig_srcdi(2,ksmx(i))
             enddo
 
             ! Copy variables into 1D arrays.
@@ -905,7 +930,8 @@ contains
          call regrid_plevel_jslice(p_src, p_dst, ilb, iub, j)
       else
          if (regrid_method_tag == regrid_method_direct) then
-            call regrid_cntiso_hybrid_direct_jslice(p_src, p_dst, &
+            call regrid_cntiso_hybrid_direct_jslice(p_src, ksmx, t_srcdi, &
+                                                    p_dst, &
                                                     ilb, iub, j, js, nn)
          else
             call regrid_cntiso_hybrid_nudge_jslice(p_src, ksmx, tpc_src, &
