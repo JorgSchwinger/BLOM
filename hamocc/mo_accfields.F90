@@ -108,6 +108,8 @@ contains
                                 jsrfphyto,jsrfsilica,jsrfph,jwnos,jwphy,jndepnoyfx,jtdustfx,       &
                                 jsfefx,joalkfx,nbgc,nacc_bgc,bgcwrt,glb_inventory,                 &
                                 bgct2d,acclvl,acclyr,accsrf,bgczlv,                                &
+                                jsrfco3,jintpoc,jphyc_200, jco3satarag_0,jph_200,jco3_200,         &
+                                jco3satarag_200,jo2_200,jo2min,                                    &
                                 jatmbromo,jbromo,jbromo_prod,jbromo_uv,jbromofx,jsrfbromo,         &
                                 jcfc11,jcfc11fx,jcfc12,jcfc12fx,jsf6,jsf6fx,                       &
                                 jatmc13,jatmc14,jbigd14c,jcalc13,jco213fxd,jco213fxu,              &
@@ -169,7 +171,7 @@ contains
     use mo_sedmnt,        only: powtra,sedlay,burial,prorca_mavg,sed_reactivity_a,                 &
                                 sed_reactivity_k,sed_applied_reminrate,sed_rem_aerob,sed_rem_denit,&
                                 sed_rem_sulf
-    use mo_vgrid,         only: dp_min
+    use mo_vgrid,         only: dp_min,k0200
     use mo_inventory_bgc, only: inventory_bgc
     use mo_ncwrt_bgc    , only: ncwrt_bgc
     use mo_ihamocc4m4ago, only: aggregate_diagnostics,kav_dp,kav_rho_p,kav_d_C,kws_agg,kdf_agg,    &
@@ -198,6 +200,16 @@ contains
     real(rp) :: d14C(kpie,kpje,kpke)    ! cisonew
     real(rp) :: bigd14C(kpie,kpje,kpke) ! cisonew
 
+    ! CMIP7 additional daily outputs
+    real(rp) :: intpoc(kpie,kpje)               ! Vertically integrated detritus concentration 
+    real(rp) :: co3satarag_0(kpie,kpje)         ! Mole carbonate anion (CO3) for sea water in equilibrium with pure Aragonite @sfc
+    real(rp) :: phyc_200(kpie,kpje)             ! phytoplankton 200m
+    real(rp) :: ph_200(kpie,kpje)               ! pH 200m
+    real(rp) :: co3_200(kpie,kpje)              ! co3 200m
+    real(rp) :: co3satarag_200(kpie,kpje)       ! Mole carbonate anion (CO3) for sea water in equilibrium with pure Aragonite @200m
+    real(rp) :: o2_200(kpie,kpje)               ! o2 200m
+    real(rp) :: o2min(kpie,kpje)                ! in vertical space)
+
     if (use_cisonew) then
       ! Calculation d13C, d14C and Dd14C: Delta notation for output
       d13C(:,:,:)=0._rp
@@ -220,6 +232,35 @@ contains
       enddo
     endif
 
+    intpoc        (:,:)=0._rp
+    co3satarag_0  (:,:)=0._rp
+    phyc_200      (:,:)=0._rp
+    ph_200        (:,:)=0._rp
+    co3_200       (:,:)=0._rp
+    co3satarag_200(:,:)=0._rp
+    o2_200        (:,:)=0._rp
+    o2min         (:,:)=0._rp
+
+ 
+
+    do j=1,kpje
+      do i=1,kpie
+        if(omask(i,j).gt.0.5_rp) then
+          co3satarag_0(i,j)=co3(i,j,1)/OmegaA(i,j,1)
+          k=k0200(i,j)
+          phyc_200(i,j)=ocetra(i,j,k,iphy)
+          ph_200(i,j)  =-log10(hi(i,j,k))
+          co3_200(i,j) =co3(i,j,k)
+          co3satarag_200(i,j)=co3_200(i,j)/OmegaA(i,j,k)
+          o2_200(i,j)  =ocetra(i,j,k,ioxygen)
+          o2min(i,j)   =ocetra(i,j,1,ioxygen)
+          do k=1,kpke
+            intpoc(i,j)  =intpoc(i,j)  +ocetra(i,j,k,idet)*pddpo(i,j,k)       ! integrated POC in kmol P m-2
+            o2min(i,j)   =min(o2min(i,j),ocetra(i,j,k,ioxygen))
+          enddo
+        endif
+      enddo
+    enddo
 
     ! Accumulated fluxes for inventory.F90. Note that these are currently not written to restart!
     ! Division by 2 is to account for leap-frog timestepping (but this is not exact)
@@ -338,6 +379,15 @@ contains
     call accsrf(jzeunutlim_fe,zeu_nutlim_diag(1,1,inutlim_fe),omask,0)
     call accsrf(jzeunutlim_phosph,zeu_nutlim_diag(1,1,inutlim_phosph),omask,0)
     call accsrf(jzeunutlim_n,zeu_nutlim_diag(1,1,inutlim_n),omask,0)
+    call accsrf(jsrfco3,co3(1,1,1),omask,0)
+    call accsrf(jintpoc,intpoc,omask,0)
+    call accsrf(jco3satarag_0,co3satarag_0,omask,0)
+    call accsrf(jphyc_200,phyc_200,omask,0)
+    call accsrf(jph_200,ph_200,omask,0)
+    call accsrf(jco3_200,co3_200,omask,0)
+    call accsrf(jco3satarag_200,co3satarag_200,omask,0)
+    call accsrf(jo2_200,o2_200,omask,0)
+    call accsrf(jo2min,o2min,omask,0)
     if (use_natDIC) then
       call accsrf(jsrfnatdic,ocetra(1,1,1,inatsco212),omask,0)
       call accsrf(jsrfnatalk,ocetra(1,1,1,inatalkali),omask,0)
